@@ -1,0 +1,80 @@
+{
+  "id": "growth",
+  "name": "发行增长",
+  "title": "发行与增长",
+  "en": "LAUNCH & GROWTH",
+  "icon": "chart",
+  "color": "#bc9a62",
+  "tint": "#f8f3e9",
+  "desc": "把产品转化为生意",
+  "nodes": [
+    [
+      "上线准备",
+      "发行与商店资料",
+      "上线检查清单.md",
+      "核对平台资料、商店文案、截图和版本交付条件。",
+      "决定是否提交审核",
+      "候选版本、定位、平台清单",
+      "商店素材、提交清单与阻塞问题"
+    ],
+    [
+      "素材与投放",
+      "卖点验证与广告实验",
+      "投放实验方案.md",
+      "围绕卖点提出素材与受众实验，记录预算、归因方式和停止条件。",
+      "确认实验与预算",
+      "用户定位、游戏素材、可用预算",
+      "素材脚本、实验矩阵与预算上限"
+    ],
+    [
+      "数据与运营",
+      "增长指标与运营观察",
+      "数据观察报告.md",
+      "从有来源的数据检查漏斗、留存、收入和成本，避免把相关性当因果。",
+      "确认问题优先级",
+      "埋点定义、真实数据与实验记录",
+      "指标口径、问题证据与运营建议"
+    ],
+    [
+      "迭代决策",
+      "继续投入还是调整",
+      "迭代决策记录.md",
+      "对照预先确认的指标、成本和风险，提出加码、调整或停止建议。",
+      "决定下一轮投入",
+      "实验与运营数据、成本、门槛",
+      "商业复盘、决策依据与下轮范围"
+    ]
+  ],
+  "schema_version": 1,
+  "frontend": {
+    "entry": "ui.js"
+  },
+  "homepage": {
+    "headline": "把游戏，推向可持续的增长。",
+    "description": "连接上线准备、素材投放与真实数据，决定下一轮迭代。",
+    "eyebrow": "LAUNCH · ACQUISITION · LIVEOPS",
+    "focus": [
+      "上线与渠道准备",
+      "素材与投放假设",
+      "留存、回收与迭代"
+    ]
+  },
+  "execution": {
+    "adapter": "manual",
+    "automatic": false
+  },
+  "owner": "发行增长部门负责人",
+  "tools": [
+    {
+      "id": "app_store",
+      "label": "App Store Connect",
+      "url": "https://appstoreconnect.apple.com/"
+    },
+    {
+      "id": "play_console",
+      "label": "Google Play Console",
+      "url": "https://play.google.com/console/"
+    }
+  ],
+  "tool_adapters": []
+}

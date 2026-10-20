@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>CFBundleExecutable</key><string>StudioFlowCodexBridge</string>
+  <key>CFBundleIdentifier</key><string>studioflow.codex-bridge</string>
+  <key>CFBundleName</key><string>StudioFlow Codex Bridge</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleVersion</key><string>1</string>
+  <key>LSMinimumSystemVersion</key><string>13.0</string>
+  <key>LSUIElement</key><true/>
+  <key>NSAppleEventsUsageDescription</key><string>将你选择的 Skill 粘贴到 Codex 当前输入框；不会自动发送。</string>
+  <key>NSAppTransportSecurity</key><dict><key>NSAllowsLocalNetworking</key><true/></dict>
+  <key>CFBundleURLTypes</key><array><dict>
+    <key>CFBundleURLName</key><string>StudioFlow Codex handoff</string>
+    <key>CFBundleURLSchemes</key><array><string>studioflow-codex</string></array>
+  </dict></array>
+</dict></plist>

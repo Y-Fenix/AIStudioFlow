@@ -1,0 +1,25 @@
+# Local project data, authentication, imported requirements and execution evidence.
+/data/
+*.sqlite
+*.sqlite-*
+*.db
+team-auth.json
+ai-model-custom.json
+.env
+.env.*
+!.env.example
+# Per-machine runtimes and generated artifacts.
+.runtimes/
+.venv/
+__pycache__/
+*.py[cod]
+node_modules/
+.DS_Store
+*.log
+/dist/
+# Local authorization QR screenshots and private signing material.
+/feishu-*-auth.png
+*.pem
+*.key
+*.p12
+*.pfx

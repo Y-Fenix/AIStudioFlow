@@ -1,0 +1,87 @@
+{
+  "id": "design",
+  "name": "设计",
+  "title": "设计部门",
+  "en": "DESIGN",
+  "icon": "brush",
+  "color": "#a787b4",
+  "tint": "#f5eff7",
+  "desc": "形成一致的游戏体验",
+  "nodes": [
+    [
+      "视觉定调",
+      "视觉语言与风格基准",
+      "视觉方向板.md",
+      "根据用户、题材、玩法和目标设备提出可比较的视觉方向。",
+      "确定视觉方向",
+      "已确认 PRD、竞品参考和品牌约束",
+      "方向板、配色、字体、可复用视觉规范"
+    ],
+    [
+      "UX 与界面",
+      "关键页面与交互设计",
+      "界面交互规范.md",
+      "输出首屏、核心玩法、结算和商业化页面的交互与状态。",
+      "确认关键用户路径",
+      "产品原型、规则、视觉规范",
+      "页面设计图、交互说明、异常与空状态"
+    ],
+    [
+      "资产生产",
+      "美术资产与动效",
+      "资产清单.csv",
+      "拆出首版必需资产，按规范生成或整理图片、图标、动效和音频需求。",
+      "确认资产质量与生产范围",
+      "已确认设计图、尺寸和性能预算",
+      "可交付资产、命名目录、规格与来源记录"
+    ],
+    [
+      "设计验收",
+      "可实施的设计交付",
+      "设计交付清单.md",
+      "检查资源完整性、适配、交互状态和开发所需参数。",
+      "冻结设计版本并交给开发",
+      "界面与资源、交互规范、平台约束",
+      "标注与资源清单、缺口、开发验收条件"
+    ]
+  ],
+  "schema_version": 1,
+  "frontend": {
+    "entry": "ui.js"
+  },
+  "homepage": {
+    "headline": "让玩法，拥有一致的视觉体验。",
+    "description": "围绕玩家操作与反馈，推进视觉、界面与资产交付。",
+    "eyebrow": "ART · EXPERIENCE · ASSETS",
+    "focus": [
+      "视觉方向与规范",
+      "关键界面与交互",
+      "资产交付与验收"
+    ]
+  },
+  "execution": {
+    "adapter": "manual",
+    "automatic": false
+  },
+  "owner": "设计部门负责人",
+  "tools": [
+    {
+      "id": "figma",
+      "label": "Figma",
+      "url": "https://www.figma.com/"
+    },
+    {
+      "id": "figma_ai",
+      "label": "Figma AI",
+      "url": "https://www.figma.com/ai/"
+    }
+  ],
+  "tool_adapters": [
+    {
+      "id": "figma_ai",
+      "label": "Figma AI API",
+      "status": "unconfigured",
+      "credentials": "platform_admin"
+    }
+  ]
+}

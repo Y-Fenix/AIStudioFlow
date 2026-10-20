@@ -1,0 +1,6 @@
+# Replace the hostname with the team's real DNS name.
+# Caddy must be able to bind public ports 80 and 443 and obtain a valid certificate.
+studio.example.com {
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:8766
+}
