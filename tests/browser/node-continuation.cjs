@@ -15,8 +15,20 @@ const {chromium}=require(process.env.STUDIOFLOW_PLAYWRIGHT_MODULE||'playwright')
   async function api(url,body){const r=await page.request[body===undefined?'get':'post'](base+url,body===undefined?{}:{data:body});assert(r.ok(),await r.text());return r.json()}
   const studio=(await api('/api/studios')).items[0].id,project=await api(`/api/studios/${studio}/projects`,{name:'节点续接验证'}),root=`/api/studios/${studio}/projects/${project.id}`;
   await api(root+'/tasks',{title:'手动审核批次'});await api(root+'/enter',{});await api('/api/me/preferences',{active_studio_id:studio,role:'qa'});await page.goto(base);
-  for(const department of ['product','design','development','testing','growth']){
+  await page.locator('[data-action="view:overview"]').first().click();
+  await page.locator('.department-cards [role=switch]').first().waitFor();
+  assert.equal(await page.locator('.department-cards [role=switch]').count(),3);
+  const outerSwitch=page.locator('.department-cards [role=switch]').first();
+  await outerSwitch.evaluate(el=>window.savedOuterSwitch=el);
+  await outerSwitch.click();await page.waitForFunction(()=>document.querySelector('.department-cards [role=switch]')?.getAttribute('aria-checked')==='true');
+  assert(await outerSwitch.evaluate(el=>window.savedOuterSwitch===el),'saving must preserve DOM identity');
+  await page.reload();await page.locator('[data-action="view:overview"]').first().click();
+  await page.locator('.department-cards [role=switch][aria-checked=true]').first().waitFor();
+  assert.equal((await api(root+'/node-continuation?department=__project__')).edges[0].enabled,true);
+  const shotsOuter=path.resolve(__dirname,'../../data/visual-review');fs.mkdirSync(shotsOuter,{recursive:true});await page.screenshot({path:path.join(shotsOuter,'continuation-overview-centered.png'),fullPage:true});
+  for(const department of ['product','design','development','testing']){
    await page.locator(`[data-action="home:${department}"]`).click();
+   await page.locator('.home-node[data-action="node:'+department+':0"]').waitFor();
    console.log('Checking',department);const switches=page.getByRole('switch');await switches.first().waitFor();
    const cfg=await api(root+'/node-continuation?department='+department);assert.equal(await switches.count(),cfg.edges.length);
    assert.equal(await switches.first().getAttribute('aria-checked'),'false');await switches.first().click();
@@ -27,10 +39,22 @@ const {chromium}=require(process.env.STUDIOFLOW_PLAYWRIGHT_MODULE||'playwright')
    await page.locator(`.home-node[data-action="node:${department}:0"]`).click();
    const workspace=department==='testing'?page.frameLocator('#testing-frame'):page;
    await workspace.locator(department==='testing'?'.steps':'.workflow-strip').waitFor();
+   const steps=workspace.locator(department==='testing'?'.step':'.workflow-step');
+   assert.equal(await workspace.locator('.node-status-dot').count(),await steps.count(),'every workspace node exposes a status dot');
+   if(department!=='testing'){
+    for(const theme of ['paper','forge','arcade']){
+     await page.locator('html').evaluate((el,t)=>el.dataset.theme=t,theme);
+     assert.equal(await steps.first().getAttribute('aria-pressed'),'true');
+     assert.notEqual(await steps.first().evaluate(el=>getComputedStyle(el).backgroundColor),await steps.nth(1).evaluate(el=>getComputedStyle(el).backgroundColor),'generic workspaces distinguish selection');
+     assert.equal(await steps.first().evaluate(el=>getComputedStyle(el).color),await steps.first().locator('b').evaluate(el=>getComputedStyle(el).color));
+    }
+   }
    await workspace.getByRole('switch').first().waitFor();assert.equal(await workspace.getByRole('switch').first().getAttribute('aria-checked'),'true');
+   await workspace.getByRole('switch').first().evaluate(el=>window.savedContinuation=el);
    await workspace.getByRole('switch').first().waitFor({state:'visible'});await workspace.getByRole('switch').first().evaluate(el=>{if(el.disabled)throw Error('switch still busy')});await workspace.getByRole('switch').first().press('Space');
    await workspace.locator('[data-continuation-source="'+department+':0"] [role=switch][aria-checked=false]').waitFor();
    assert.equal((await api(root+'/node-continuation?department='+department)).edges[0].enabled,false);
+   assert(await workspace.getByRole('switch').first().evaluate(el=>window.savedContinuation===el),'toggle must update in place');
    // Refresh must not discard unfinished workspace edits.
    if(department!=='testing'){
     await page.locator('#node-inputs').fill('未保存草稿');
@@ -66,7 +90,25 @@ const {chromium}=require(process.env.STUDIOFLOW_PLAYWRIGHT_MODULE||'playwright')
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'mobile document must not overflow');
   await page.screenshot({path:path.join(shots,'node-continuation-mobile.png'),fullPage:true});
   await page.reload();await page.locator('[data-action="home:testing"]').click();await page.getByRole('switch').first().waitFor();assert.equal(await page.getByRole('switch').first().getAttribute('aria-checked'),'true');
-  assert.deepEqual(errors,[]);console.log('PASS: five departments, home/workspace shared settings, keyboard, no accidental navigation or execution, refresh, draft preservation, three themes and mobile. Temporary SQLite; no AI or Feishu calls.');
+  // Archived filter is folded into attribution; only other invalid dependencies stay blocked.
+  let nodes=await api(root+'/nodes?department=testing');nodes.nodes=nodes.nodes.filter(n=>n.id!=='testing:3');await api(root+'/nodes?department=testing',nodes);
+  await page.setViewportSize({width:1680,height:1060});await page.reload();
+  await page.locator('[data-action="home:testing"]').click();await page.locator('.home-node[data-action="node:testing:0"]').click();
+  const bridge=page.frameLocator('#testing-frame').locator('[data-continuation-source="testing:2"] [role=switch]');
+  await bridge.waitFor();assert.equal(await bridge.getAttribute('aria-disabled'),'false');await bridge.click();
+  await page.frameLocator('#testing-frame').locator('[data-continuation-source="testing:2"] [role=switch][aria-checked=true]').waitFor();
+  assert.equal((await api(root+'/node-continuation?department=testing')).edges.find(e=>e.source==='testing:2').enabled,true);
+  nodes=await api(root+'/nodes?department=testing');[nodes.nodes[1],nodes.nodes[2]]=[nodes.nodes[2],nodes.nodes[1]];await api(root+'/nodes?department=testing',nodes);
+  await page.reload();await page.locator('[data-action="home:testing"]').click();await page.locator('.home-node[data-action="node:testing:0"]').click();
+  const disabled=page.frameLocator('#testing-frame').locator('[data-continuation-source="testing:0"] [role=switch]');
+  await disabled.waitFor();assert.equal(await disabled.getAttribute('aria-disabled'),'true');
+  assert.match(await disabled.innerText(),/查看原因/);const hit=await disabled.boundingBox();await page.mouse.click(hit.x+hit.width/2,hit.y+hit.height/2);
+  await page.frameLocator('#testing-frame').locator('.toast').filter({hasText:'证据依赖'}).waitFor();
+  await disabled.press('Enter');await disabled.press('Enter');
+  const center=await page.frameLocator('#testing-frame').locator('.step').first().evaluate(el=>{const r=el.getBoundingClientRect(),a=el.querySelector('.stepnum').getBoundingClientRect(),b=el.querySelector('b').getBoundingClientRect();return Math.abs((a.left+b.right)/2-(r.left+r.right)/2)});
+  assert(center<3,'stage number and title must be centered together');
+  await page.screenshot({path:path.join(shotsOuter,'continuation-disabled-reason.png')});
+  assert.deepEqual(errors,[]);console.log('PASS: four departments, home/workspace shared settings, keyboard, no accidental navigation or execution, refresh, draft preservation, three themes and mobile. Temporary SQLite; no AI or Feishu calls.');
  }catch(error){console.error(output.slice(-2500));throw error}
  finally{if(browser)await browser.close();server.kill('SIGTERM');await new Promise(r=>server.exitCode!==null?r():server.once('exit',r));fs.rmSync(folder,{recursive:true,force:true})}
 })().catch(e=>{console.error(e);process.exitCode=1});

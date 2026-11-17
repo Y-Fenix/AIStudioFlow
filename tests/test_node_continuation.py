@@ -226,7 +226,14 @@ class NodeContinuationTests(unittest.TestCase):
 
 class NodeContinuationHttpTests(unittest.TestCase):
     from tests.test_api import ApiTests as _Api
-    setUp=_Api.setUp
+    def setUp(self):
+        # These HTTP cases deliberately cover an unconnected department.
+        # Production now registers textual adapters; never invoke a real model
+        # just to exercise the missing-executor continuation branch.
+        with patch('server.core.integrations.AdapterRegistry.load_modules',
+                   return_value=AdapterRegistry()):
+            self._Api.setUp(self)
+
     tearDown=_Api.tearDown
     request=_Api.request
 
@@ -241,6 +248,16 @@ class NodeContinuationHttpTests(unittest.TestCase):
         self.assertFalse(self.request(route.replace(project,'unknown-project'))[0]==200)
         other=self.request('/api/studios',{'name':'独立工作室'})[1]['id']
         self.assertNotEqual(self.request(route.replace(studio,other))[0],200)
+
+    def test_real_http_outer_configuration_persists_separately_from_node_switches(self):
+        studio=self.request('/api/studios')[1]['items'][0]['id']
+        project=self.request('/api/projects',{'name':'部门间衔接'})[1]['id']
+        route=f'/api/studios/{studio}/projects/{project}/node-continuation?department=__project__'
+        code,value=self.request(route);self.assertEqual(code,200);self.assertEqual(len(value['edges']),3)
+        code,value=self.request(route,{'revision':value['revision'],'source':'product:3','target':'design:0','enabled':True})
+        self.assertEqual(code,200);self.assertTrue(value['edges'][0]['enabled'])
+        inner=self.request(route.replace('__project__','product'))[1]
+        self.assertFalse(any(e['enabled'] for e in inner['edges']))
 
     def test_real_http_worker_reports_missing_executor_in_operation_log(self):
         import time
@@ -261,3 +278,77 @@ class NodeContinuationHttpTests(unittest.TestCase):
         else:self.fail('真实 HTTP 后台续接没有记录缺执行器原因')
         target=self.request(root+'/workspace?node=product:1')[1]
         self.assertEqual(target['deliverable'],'');self.assertNotEqual(target['status'],'approved')
+
+class DepartmentContinuationTests(unittest.TestCase):
+    setUp=NodeContinuationTests.setUp
+    service=NodeContinuationTests.service
+    rows=NodeContinuationTests.rows
+    # Reuse fixtures without inheriting the node-level test methods.
+    def enable_outer(self,source='product:3',target='design:0',enabled=True):
+        service=self.service();value=service.get(self.studio,self.project,'__project__')
+        return service.save(self.studio,self.project,'__project__',{'revision':value['revision'],'source':source,'target':target,'enabled':enabled})
+
+    def complete_product(self):
+        for i in range(4):
+            self.w.save(self.studio,self.project,f'product:{i}',{'revision':0,'deliverable':'明确交付'})
+            self.w.decide(self.studio,self.project,f'product:{i}',{'revision':1,'action':'approve','reason':'人工审核'})
+
+    def test_outer_defaults_and_persistence_use_real_boundary_nodes(self):
+        value=self.service().get(self.studio,self.project,'__project__')
+        self.assertEqual([(e['source'],e['target']) for e in value['edges']],[('product:3','design:0'),('design:3','development:0'),('development:3','testing:0')])
+        self.assertFalse(any(e['enabled'] for e in value['edges']))
+        value=self.enable_outer();self.assertTrue(value['edges'][0]['enabled'])
+        self.assertFalse(self.service().get(self.studio,self.other,'__project__')['edges'][0]['enabled'])
+
+    def test_outer_dispatch_after_all_source_nodes_approved_once(self):
+        self.registry.register('design',type('Fixture',(),{'execute':lambda s,c:{'deliverable':'fixture'}})())
+        self.w.save(self.studio,self.project,'design:0',{'revision':0,'inputs':'目标资料'})
+        self.enable_outer();self.complete_product();self.service().run_once()
+        self.assertEqual([j['node'] for j in self.rows('department_jobs')],['design:0'])
+        self.assertFalse(self.service().run_once())
+
+    def test_outer_missing_prior_approval_stops(self):
+        self.enable_outer();self.w.save(self.studio,self.project,'product:3',{'revision':0,'deliverable':'末节点交付'})
+        self.w.decide(self.studio,self.project,'product:3',{'revision':1,'action':'approve','reason':'人工确认'})
+        self.service().run_once();self.assertEqual(self.rows('department_jobs'),[])
+        self.assertIn('全部',self.rows('node_continuation_events')[-1]['detail'])
+
+    def test_outer_topology_change_closes_switches(self):
+        self.enable_outer()
+        from server.core.project_nodes import ProjectNodes
+        manager=ProjectNodes(self.store);value=manager.get(self.studio,self.project,'product');value['nodes'].reverse();manager.save(self.studio,self.project,'product',value)
+        self.assertFalse(any(e['enabled'] for e in self.service().get(self.studio,self.project,'__project__')['edges']))
+
+    def test_outer_requires_target_visibility_and_source_edit(self):
+        with self.store.connection() as db:db.execute("INSERT INTO users(id,tenant_key,open_id,name,status) VALUES('outer-user','t','outer','成员','active')")
+        Administration(self.store).member({'user_id':'outer-user','studio_id':self.studio,'project_id':self.project,'department':'product','role':'lead'})
+        token=current_user.set('outer-user')
+        try:
+            self.assertEqual(self.service().get(self.studio,self.project,'__project__')['edges'],[])
+            with self.assertRaises(PermissionError):self.enable_outer()
+        finally:current_user.reset(token)
+
+    def test_outer_target_and_config_changes_never_replay_old_intents(self):
+        self.enable_outer();self.complete_product();self.enable_outer(enabled=False);self.enable_outer()
+        self.service().run_once();self.assertEqual(self.rows('department_jobs'),[])
+        self.assertIn('变化',self.rows('node_continuation_events')[-1]['detail'])
+
+    def test_outer_entering_testing_waits_for_explicit_batch_selection(self):
+        self.enable_outer('development:3','testing:0')
+        for i in range(4):
+            self.w.save(self.studio,self.project,f'development:{i}',{'revision':0,'deliverable':'已核实交付'})
+            self.w.decide(self.studio,self.project,f'development:{i}',{'revision':1,'action':'approve','reason':'人工确认'})
+        self.service().run_once();self.assertEqual(self.rows('jobs'),[])
+        self.assertEqual(self.rows('tasks'),[])
+        self.assertIn('测试批次',self.rows('node_continuation_events')[-1]['detail'])
+
+    def test_testing_final_confirmation_no_longer_dispatches_legacy_growth(self):
+        import json
+        with self.assertRaises(ValueError):self.enable_outer('testing:5','growth:0')
+        task=self.store.create_task(self.project,'完成批次')
+        with self.store.connection() as db:
+            db.execute('UPDATE tasks SET stage=5,artifacts=? WHERE id=?',(json.dumps({'5':{'ready_for_review':True}}),task['id']))
+        self.store.decide(self.project,task['id'],'confirm',task['revision'])
+        self.assertFalse(self.service().run_once())
+        self.assertEqual(self.rows('department_jobs'),[])
+        self.assertEqual(self.store.task(self.project,task['id'])['status'],'completed')

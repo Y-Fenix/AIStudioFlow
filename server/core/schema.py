@@ -65,6 +65,8 @@ def migrate(store):
                 project_id TEXT PRIMARY KEY REFERENCES projects(id),revision INTEGER NOT NULL,
                 items TEXT NOT NULL,disabled_departments TEXT NOT NULL);
         ''')
+        if 'progress' not in {r['name'] for r in db.execute('PRAGMA table_info(department_jobs)')}:
+            db.execute('ALTER TABLE department_jobs ADD COLUMN progress TEXT')
         if 'workflow_nodes' not in {r['name'] for r in db.execute('PRAGMA table_info(tasks)')}:
             db.execute("ALTER TABLE tasks ADD COLUMN workflow_nodes TEXT NOT NULL DEFAULT '{}'")
         for table in ('studios','projects'):
@@ -81,3 +83,25 @@ def migrate(store):
     from server.core.node_continuation_schema import migrate as migrate_continuation
     with store.connection() as db:
         migrate_continuation(db)
+    from server.core.notifications import migrate as migrate_notifications
+    with store.connection() as db:
+        migrate_notifications(db)
+
+    from server.core.node_blocks.schema import migrate as migrate_blocks
+    with store.connection() as db:
+        migrate_blocks(db)
+    from server.core.testing_automation import migrate as migrate_testing_automation
+    from server.core.testing_edge_automation import migrate as migrate_testing_edges
+    with store.connection() as db:
+        migrate_testing_automation(db)
+        migrate_testing_edges(db)
+
+    from server.core.department_flows import migrate as migrate_flows
+    from server.core.node_memory import migrate as migrate_memory
+    with store.connection() as db:
+        migrate_flows(db)
+        migrate_memory(db)
+
+    from server.core.testing_library import migrate as migrate_testing_library
+    with store.connection() as db:
+        migrate_testing_library(db)

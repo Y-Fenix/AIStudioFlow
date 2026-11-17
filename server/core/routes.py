@@ -7,8 +7,35 @@ from server.core.identity import user_id
 
 def dispatch(handler, parts, query, body, write, auth, store, registry):
     policy=Policy(store);admin=Administration(store);q=parse_qs(query);studio=q.get('studio',[''])[0];project=q.get('project',[''])[0]
+    from server.core.testing_library import dispatch as library_dispatch
+    library_matched,library_result,library_scope=library_dispatch(parts,q,body,write,store)
+    if library_matched:
+        handler.team_scope=library_scope
+        handler.send_json(200,library_result)
+        return True
     result=None;matched=True
-    if len(parts)==6 and parts[:2]==['api','projects'] and parts[3]=='tasks' and parts[5]=='codex-handoff' and write:
+    from server.core.flow_routes import dispatch as flow_dispatch
+    flow_matched,flow_result=flow_dispatch(parts,q,body,write,store)
+    if flow_matched:
+        handler.team_scope={'studio':parts[2],'project':parts[4]}
+        handler.send_json(200,flow_result)
+        return True
+    from server.core.node_blocks.routes import dispatch as block_dispatch
+    block_matched,block_result=block_dispatch(parts,q,body,write,store,registry)
+    if block_matched:
+        handler.send_json(200,block_result)
+        return True
+    if len(parts) in (4,5,6) and parts[:2]==['api','studios'] and parts[3]=='notifications':
+        from server.core.notification_settings import NotificationSettings
+        from server.core.notifications import NotificationQueue
+        studio=parts[2];project=q.get('project',[''])[0];department=q.get('department',[''])[0];node=q.get('node',[''])[0]
+        settings=NotificationSettings(store);queue=NotificationQueue(store)
+        if len(parts)==4:result=settings.save(studio,project,body,department,node) if write else settings.get(studio,project,department,node)
+        elif len(parts)==5 and parts[4]=='test' and write:result=queue.test(studio,project,department,node)
+        elif len(parts)==5 and parts[4]=='history' and not write:result={'items':queue.listing(studio,project)}
+        elif len(parts)==6 and parts[5]=='resend' and write:result=queue.resend(studio,project,int(parts[4]))
+        else:raise KeyError('通知接口不存在')
+    elif len(parts)==6 and parts[:2]==['api','projects'] and parts[3]=='tasks' and parts[5]=='codex-handoff' and write:
         from server.core.skill_handoff import SkillHandoff
         stage=int(q.get('stage',['-1'])[0])
         result=SkillHandoff(store).create_testing(store.preferences()['active_studio_id'],parts[2],parts[4],stage,body.get('origin'),preview=body.get('preview') is True)
@@ -62,10 +89,10 @@ def dispatch(handler, parts, query, body, write, auth, store, registry):
         result={'items':registry.status()}
     elif len(parts)==7 and parts[:2]==['api','studios'] and parts[3]=='projects' and parts[5:7]==['workspace','execute'] and write:
         from server.department_jobs import DepartmentExecutionQueue
-        result=DepartmentExecutionQueue(store,registry).enqueue(parts[2],parts[4],q.get('node',[''])[0],body.get('revision'))
+        result=DepartmentExecutionQueue(store,registry).enqueue(parts[2],parts[4],q.get('node',[''])[0],body.get('revision'),flow=q.get('flow',[''])[0])
     elif len(parts)==7 and parts[:2]==['api','studios'] and parts[3]=='projects' and parts[5:7]==['workspace','job'] and not write:
         from server.department_jobs import DepartmentExecutionQueue
-        result=DepartmentExecutionQueue(store,registry).latest(parts[2],parts[4],q.get('node',[''])[0])
+        result=DepartmentExecutionQueue(store,registry).latest(parts[2],parts[4],q.get('node',[''])[0],flow=q.get('flow',[''])[0])
     elif len(parts)==7 and parts[:2]==['api','studios'] and parts[3]=='projects' and parts[5]=='department-jobs' and not write:
         from server.department_jobs import DepartmentExecutionQueue
         result=DepartmentExecutionQueue(store,registry).get(parts[2],parts[4],parts[6])

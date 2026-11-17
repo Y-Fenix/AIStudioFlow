@@ -1,46 +1,71 @@
 """Explicit per-edge continuation; human approval is never synthesized."""
 import json
+import hashlib
 import logging
 import threading
 from server.core.identity import current_user, user_id
 from server.core.permissions import Policy
-from server.core.project_nodes import read_config
+from server.core.project_nodes import read_config, testing_filter_merged
 
 
 def _edges(db,project,department):
-    topology,nodes=read_config(db,project,department)
-    nodes=[n for n in nodes if not n['archived']]
+    outer=department=='__project__'
+    if outer:
+        from server.studio_catalog import DEPARTMENTS
+        from server.core.project_content import read_content
+        content=read_content(db,project);groups=[];signature=[content['revision']]
+        for d in DEPARTMENTS:
+            if d['id']=='growth':continue
+            revision,items=read_config(db,project,d['id']);signature.append((d['id'],revision))
+            active=[n for n in items if not n['archived']]
+            if d['id'] not in content['disabled_departments'] and active:groups.append((d,active))
+        topology=int(hashlib.sha256(json.dumps(signature).encode()).hexdigest()[:15],16)
+        pairs=[({**a[-1],'label':ad['title']},{**b[0],'label':bd['title']}) for (ad,a),(bd,b) in zip(groups,groups[1:])]
+    else:
+        topology,nodes=read_config(db,project,department)
+        nodes=[n for n in nodes if not n['archived']]
+        pairs=list(zip(nodes,nodes[1:]))
     row=db.execute('SELECT * FROM node_continuation_configs WHERE project_id=? AND department=?',(project,department)).fetchone()
     config=json.loads(row['edges']) if row else {}
     result=[]
-    for source,target in zip(nodes,nodes[1:]):
+    for source,target in pairs:
         a,b=source['id'],target['id']
-        valid=not (department=='testing' and (a.startswith('testing:custom-') or b.startswith('testing:custom-') or
+        merged_edge=department=='testing' and a=='testing:2' and b=='testing:4' and testing_filter_merged(db,project)
+        valid=merged_edge or not (department=='testing' and (a.startswith('testing:custom-') or b.startswith('testing:custom-') or
                     not a.split(':')[1].isdigit() or not b.split(':')[1].isdigit() or int(b.split(':')[1])!=int(a.split(':')[1])+1))
+        if outer and (a.startswith('testing:') and a!='testing:5' or b.startswith('testing:') and b!='testing:0'):valid=False
         value=config.get(a+'>'+b,{})
-        result.append({'source':a,'target':b,'source_name':source['definition'][0],'target_name':target['definition'][0],
+        result.append({'source':a,'target':b,'source_name':source.get('label',source['definition'][0]),'target_name':target.get('label',target['definition'][0]),
             'enabled':valid and value.get('enabled') is True and value.get('topology_revision')==topology,
-            'edge_revision':value.get('revision',0),'available':valid,'reason':'' if valid else '展示顺序不符合测试证据依赖，请恢复原阶段顺序后启用'})
+            'edge_revision':value.get('revision',0),'available':valid,'reason':'' if valid else '测试证据依赖不允许跳过必需阶段；请在管理节点中恢复缺少的节点，并按原顺序排列后启用'})
     return f"{row['revision'] if row else 0}:{topology}",topology,result
 
 
 def record_completion(store,db,studio,project,source,revision,task_id=''):
     """Called in the confirmation transaction, with its post-confirmation revision."""
+    if task_id and db.execute('SELECT 1 FROM department_flows WHERE project_id=? AND task_id=?',(project,task_id)).fetchone():
+        return  # An independent QA flow must never dispatch the default graph.
+    if task_id and db.execute('SELECT 1 FROM testing_automation WHERE task_id=? AND enabled=1',(task_id,)).fetchone():
+        return
     _,topology,edges=_edges(db,project,source.split(':')[0])
     edge=next((e for e in edges if e['source']==source),None)
+    if edge is None:
+        _,topology,edges=_edges(db,project,'__project__')
+        edge=next((e for e in edges if e['source']==source),None)
     if not edge:return
     if not edge['enabled']:
         detail='已完成，等待手动继续（自动继续已关闭）'
         if task_id:store._event(db,task_id,'continuation_stopped',detail,int(source.split(':')[1]))
         else:db.execute('INSERT INTO studio_events(project_id,node,action,detail) VALUES(?,?,?,?)',(project,source,'continuation_stopped',detail))
         return
-    if task_id:
+    if task_id and edge['target'].startswith('testing:'):
         task=store._task(db,project,task_id)
         from server.node_skills import defaults
         skills={**defaults(),**json.loads(task['node_skills'])}
         skill=skills.get(edge['target'].split(':')[1],{})
         from server.core.skill_library import bound_skill
         skill=bound_skill(db,project,edge['target'],skill,task_id)
+        skill={**skill,'sha256':hashlib.sha256(skill['content'].encode()).hexdigest() if skill.get('content') else ''}
         target_revision=revision
     else:
         from server.studio_workspaces import Workspaces
@@ -61,7 +86,8 @@ class NodeContinuation:
         visible=[]
         for edge in edges:
             if not all(policy.allowed('node','view',studio,project,node=n) for n in (edge['source'],edge['target'])):continue
-            visible.append({**edge,'editable':edge['available'] and policy.allowed('node','edit',studio,project,node=edge['source'])})
+            editable=edge['available'] and policy.allowed('node','edit',studio,project,node=edge['source'])
+            visible.append({**edge,'editable':editable,'reason':edge['reason'] or ('' if editable else '没有来源节点的编辑权限，请联系负责人授权')})
         if not visible and not policy.allowed('department','view',studio,project,department):
             policy.require('project','view',studio=studio,project=project)
         with self.store.connection() as db:
@@ -78,11 +104,12 @@ class NodeContinuation:
         with self.store.connection() as db:
             db.execute('BEGIN IMMEDIATE')
             from server.core.project_content import require_enabled
-            require_enabled(db,project,department)
+            if department!='__project__':require_enabled(db,project,department)
             revision,topology,edges=_edges(db,project,department)
             if value.get('revision')!=revision:raise ValueError('衔接配置已变化，请刷新后重试')
             edge=next((e for e in edges if e['source']==value.get('source') and e['target']==value.get('target')),None)
             if not edge or not edge['available']:raise ValueError('只能设置当前有效相邻节点；测试节点必须遵守证据依赖')
+            require_enabled(db,project,edge['source'].split(':')[0]);require_enabled(db,project,edge['target'].split(':')[0])
             policy.require('node','edit',studio=studio,project=project,node=edge['source'])
             policy.require('node','view',studio=studio,project=project,node=edge['target'])
             row=db.execute('SELECT * FROM node_continuation_configs WHERE project_id=? AND department=?',(project,department)).fetchone()
@@ -102,7 +129,8 @@ class NodeContinuation:
         self.store.check_project(studio,project)
         from server.core.project_content import require_enabled
         require_enabled(db,project,source.split(':')[0])
-        _,topology,edges=_edges(db,project,source.split(':')[0])
+        outer=source.split(':')[0]!=target.split(':')[0]
+        _,topology,edges=_edges(db,project,'__project__' if outer else source.split(':')[0])
         edge=next((e for e in edges if e['source']==source and e['target']==target),None)
         if not edge or topology!=event['topology_revision']:raise ValueError('节点连接已变化，等待手动继续')
         if not edge['enabled']:raise ValueError('自动继续已关闭，等待手动继续')
@@ -110,6 +138,7 @@ class NodeContinuation:
         policy=Policy(self.store)
         for node,actions in ((source,('view','approve')),(target,('view','edit','execute'))):
             for action in actions:policy.require('node',action,studio=studio,project=project,node=node)
+        if outer:return self._dispatch_outer(db,event)
         if event['task_id']:return self._dispatch_testing(db,event)
         from server.studio_workspaces import Workspaces
         workspaces=Workspaces(self.store)
@@ -124,12 +153,53 @@ class NodeContinuation:
         if db.execute("SELECT 1 FROM department_jobs WHERE project_id=? AND node=? AND status IN ('queued','running')",(project,target)).fetchone():raise ValueError('下一节点已有执行任务，未重复派发')
         return queue.enqueue(studio,project,target,destination['revision'],connection=db)['id']
 
+    def _dispatch_outer(self,db,event):
+        from server.studio_workspaces import Workspaces
+        project,studio,source,target=event['project_id'],event['studio_id'],event['source'],event['target']
+        source_department=source.split(':')[0];workspaces=Workspaces(self.store)
+        if source_department=='testing':
+            origin=self.store.task(project,event['task_id'])
+            if origin['status']!='completed' or origin['revision']!=event['source_revision']:
+                raise ValueError('测试批次尚未完成人工评审或证据已变化')
+        else:
+            origin=workspaces._read(db,studio,project,source)
+            if origin['revision']!=event['source_revision']:raise ValueError('来源节点证据已变化，请重新审核')
+            nodes=[n for n in read_config(db,project,source_department)[1] if not n['archived']]
+            for node in nodes:
+                Policy(self.store).require('node','view',studio=studio,project=project,node=node['id'])
+                if workspaces._read(db,studio,project,node['id'])['status']!='approved':
+                    raise ValueError('来源部门全部活动节点需先人工确认；未自动跳过审核')
+        if target.startswith('testing:'):
+            raise ValueError('进入测试部门需要人工选择测试批次、导入需求并核对范围；未创建或覆盖测试批次')
+        destination=workspaces._read(db,studio,project,target)
+        if destination['revision']!=event['target_revision'] or destination['skill']['sha256']!=event['skill_sha256']:
+            raise ValueError('下一部门资料或 Skill 已变化，等待手动继续')
+        if not self.registry or self.registry.get(target,store=self.store,project=project) is None:
+            raise ValueError('下一部门尚未接通执行器，等待手动继续')
+        if not destination['inputs'].strip():raise ValueError('下一部门缺少输入资料，请补充并手动执行')
+        if destination['deliverable'].strip():raise ValueError('下一部门已有交付物，等待人工处理，未覆盖')
+        from server.department_jobs import DepartmentExecutionQueue
+        return DepartmentExecutionQueue(self.store,self.registry).enqueue(studio,project,target,destination['revision'],connection=db)['id']
+
     def _dispatch_testing(self,db,event):
         project,task_id=event['project_id'],event['task_id'];task=self.store.task(project,task_id)
+        if db.execute('SELECT 1 FROM testing_automation WHERE task_id=? AND enabled=1',(task_id,)).fetchone():
+            raise ValueError('本批次由全自动决策接管，未重复续接')
         stage=int(event['target'].split(':')[1])
         if task['revision']!=event['source_revision'] or task['stage']!=stage or task['status']!='waiting_user':raise ValueError('测试批次证据或阶段已变化，等待手动继续')
         skill=task['node_skills'].get(str(stage),{})
         if not skill.get('content','').strip() or skill.get('sha256')!=event['skill_sha256']:raise ValueError('下一节点 Skill 未配置或已变化')
+        if event['source']=='testing:2' and stage==4 and testing_filter_merged(db,project):
+            from server.bugs import prepare_drafts
+            if '4' in task['artifacts']:raise ValueError('已有提单草稿，等待人工核对，未覆盖')
+            execution=task['artifacts']['1'];scope=task['artifacts']['2']['filing_scope']
+            name=db.execute('SELECT name FROM projects WHERE id=?',(project,)).fetchone()['name']
+            environment={k:execution.get(k) for k in ('branch','commit','build','method','code_fingerprint')}
+            environment.update(project=name,project_id=project)
+            result=prepare_drafts(scope['groups'],execution['results'],[],environment)
+            artifacts={**task['artifacts'],'4':result}
+            db.execute('UPDATE tasks SET artifacts=?,revision=revision+1 WHERE id=?',(json.dumps(artifacts,ensure_ascii=False),task_id))
+            return None
         if stage not in (1,2):raise ValueError({3:'下一步需要人工筛选根因',4:'下一步需要核对复现及提单内容；不会自动发布 Bug',5:'回归需先核对关联 Bug 待验证状态'}.get(stage,'此节点需要人工操作'))
         binding=task['binding']
         if not binding:raise ValueError('请先绑定代码分支，再手动执行')
@@ -150,10 +220,18 @@ class NodeContinuation:
             if row is None:return False
             event=dict(row);token=current_user.set(event['actor'])
             try:
-                job=self._dispatch(db,event);status='dispatched';detail='已自动排队下一节点：'+event['target']
+                job=self._dispatch(db,event);status='dispatched'
+                detail='已自动排队下一节点：'+event['target'] if job else '已准备提单草稿，等待人工核对复现及逐单审核；未发布 Bug'
             except (ValueError,PermissionError,KeyError) as exc:job=None;status='stopped';detail='自动继续暂停：'+str(exc)
             finally:current_user.reset(token)
             db.execute('UPDATE node_continuation_events SET status=?,detail=?,job_id=?,updated_at=CURRENT_TIMESTAMP WHERE id=?',(status,detail,job,event['id']))
+            if event['task_id']:
+                intent=db.execute('SELECT job_id FROM testing_edge_advances WHERE task_id=? AND source=? ORDER BY rowid DESC LIMIT 1',
+                                  (event['task_id'],event['source'])).fetchone()
+                if intent:
+                    row=db.execute('SELECT progress FROM jobs WHERE id=?',(intent['job_id'],)).fetchone()
+                    progress=json.loads(row['progress']);progress.update(continuation_state=status,continuation_detail=detail)
+                    db.execute('UPDATE jobs SET progress=? WHERE id=?',(json.dumps(progress,ensure_ascii=False),intent['job_id']))
             if event['task_id']:self.store._event(db,event['task_id'],'continuation_'+status,detail,int(event['source'].split(':')[1]))
             else:db.execute('INSERT INTO studio_events(project_id,node,action,detail) VALUES(?,?,?,?)',(event['project_id'],event['source'],'continuation_'+status,detail))
         return True

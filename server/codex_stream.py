@@ -10,6 +10,7 @@ class StreamStats:
         self.progress_events=0;self.last_response=time.monotonic()
         self.pending=''
         self.failure=None;self.last_error_code=None;self.last_error_kind=None
+        self.tool_ids=set();self.completed_command_ids=set();self.last_tool=None
     def sample(self):
         now=time.monotonic()
         size=self.path.stat().st_size if self.path.exists() else 0
@@ -34,6 +35,13 @@ class StreamStats:
                     self.progress_events+=1
                     self.last_response=now
                 item=event.get('item') or {}
+                if isinstance(item,dict) and item.get('type') in ('command_execution','mcp_tool_call','web_search'):
+                    identity=item.get('id')
+                    if isinstance(identity,str):
+                        self.tool_ids.add(identity)
+                        self.last_tool=item['type']
+                        if kind=='item.completed' and item['type']=='command_execution':
+                            self.completed_command_ids.add(identity)
                 if isinstance(item,dict) and item.get('type')=='agent_message' and isinstance(item.get('text'),str):
                     self.assistant_chars+=len(item['text'])
                 if kind in ('error','turn.failed'):
@@ -54,6 +62,7 @@ class StreamStats:
                     # 标记重连次数，但不保存消息全文。
                     if 'reconnect' in str(event.get('message','')).lower():self.retries+=1
         return {'events_received':self.received,'stream_bytes':size,'assistant_chars':self.assistant_chars,
+                'tool_calls':len(self.tool_ids),'commands_completed':len(self.completed_command_ids),'last_tool':self.last_tool,
                 'progress_events':self.progress_events,'seconds_since_response':round(now-self.last_response,1),
                 'error_events':self.errors,'upstream_error_code':self.last_error_code,'upstream_error_kind':self.last_error_kind,'retry_events':self.retries,'last_event':self.last_event,
                 'seconds_since_activity':round(now-self.last_activity,1) if self.last_activity else None}

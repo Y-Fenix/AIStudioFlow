@@ -1,0 +1,34 @@
+/* Shared shell polish for the approved ATELIER interaction design. */
+[data-theme=paper]{--bg:#f6f7f9;--ink:#263249;--muted:#617087;--line:#e1e6ef;--surface-2:#f5f7fb;--accent:#335cf0;--accent-soft:#edf2ff;--green-deep:#335cf0;--radius:12px}
+html{scroll-padding-top:160px;scroll-padding-bottom:24px}
+button:disabled{cursor:not-allowed}
+button,input,select,textarea{transition:background-color .14s,border-color .14s,box-shadow .14s,color .14s;touch-action:manipulation}
+button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+[data-theme=paper] #sidebar{background:var(--surface)}
+[data-theme=paper] .nav-item.active{border-color:transparent;box-shadow:none;background:var(--accent-soft);color:var(--accent)}
+[data-theme=paper] .brand-mark{background:var(--accent-soft);color:var(--accent)}
+[data-theme=paper] .panel{box-shadow:0 3px 14px #18336003}
+#sidebar .nav-item{min-height:42px}
+.workspace-grid .node-panel,.workflow-pages .panel{border-color:var(--line)}
+.workspace-grid .node-head{gap:14px}
+.workspace-grid .node-bottom button{min-height:36px}
+.modal-backdrop:has(.skill-picker),.modalwrap:has(.skill-picker){display:flex;justify-content:flex-end;align-items:stretch;padding:0}
+.modal:has(.skill-picker){position:fixed;inset:0 0 0 auto;margin:0;width:min(540px,100%);max-width:100%;height:100dvh;max-height:100dvh;border-radius:0;border:0;border-left:1px solid var(--line);box-shadow:-12px 0 60px #0e1c3525;animation:studio-drawer-in .2s ease-out}
+.modal:has(.skill-picker) .modal-head{padding:26px 24px;flex-shrink:0}
+.modal:has(.skill-picker) .modal-head h2{font-size:21px;line-height:1.5}
+.modal:has(.skill-picker) .modal-body{min-height:0;padding:22px 24px;flex:1;overflow:auto;overscroll-behavior:contain}
+.modal:has(.skill-picker) .icon-button{width:36px;height:36px}
+.modal:has(.skill-picker) .skill-picker-grid{grid-template-columns:1fr;gap:18px}
+.modal:has(.skill-picker) .skill-picker-list{max-height:300px;scrollbar-width:thin}
+.modal:has(.skill-picker) .skill-picker-preview{min-height:0}
+.modal:has(.skill-picker) .skill-picker-preview pre{max-height:220px;font-size:13px}
+.modal:has(.skill-picker) .skill-picker-item{padding:14px;gap:6px;min-height:72px}
+.modal:has(.skill-picker) .skill-picker-item.selected{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 35%,var(--line));box-shadow:none}
+.modal:has(.skill-picker) .skill-picker-item.selected strong{color:var(--accent)}
+.modal:has(.skill-picker) .skill-picker-filters{grid-template-columns:120px minmax(0,1fr)}
+.modal:has(.skill-picker) .skill-picker-footer{position:sticky;bottom:-22px;background:var(--surface);padding-block:16px;margin-top:20px;box-shadow:0 -10px 14px var(--surface);flex-wrap:wrap;z-index:1}
+.modal:has(.skill-picker) .skill-picker-footer button{min-height:40px;font-size:12px}
+@keyframes studio-drawer-in{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:translateX(0)}}
+@media(max-width:650px){.modal:has(.skill-picker) .modal-body{padding:18px}.modal:has(.skill-picker) .modal-head{padding:22px 18px}.modal:has(.skill-picker) .skill-picker-footer{bottom:-18px}.modal:has(.skill-picker) .skill-picker-footer>div{width:100%}.modal:has(.skill-picker) .skill-picker-footer button{flex:1;min-height:44px}.modal:has(.skill-picker) .skill-picker-filters{grid-template-columns:100px minmax(0,1fr)}.modal:has(.skill-picker) .skill-picker-filters input{font-size:16px}html{scroll-padding-top:210px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}

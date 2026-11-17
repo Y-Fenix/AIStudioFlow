@@ -28,8 +28,22 @@ class WorkflowE2ETests(unittest.TestCase):
     def test_static_cases_one_root_draft_then_static_regression(self):
         self.run_workflow(True)
 
-    def run_workflow(self, static):
+    def test_archived_filter_static_workflow_keeps_one_root_one_ticket(self):
+        self.run_workflow(True, merged=True)
+
+    def run_workflow(self, static, merged=False):
         _,project=self.request('/api/projects',{'name':'隔离流程样例'})
+        if merged:
+            root='/api/studios/'+self.request('/api/studios')[1]['items'][0]['id']+'/projects/'+project['id']
+            nodes_route=root+'/nodes?department=testing'
+            config=self.request(nodes_route)[1]
+            config['nodes']=[n for n in config['nodes'] if n['id']!='testing:3']
+            self.assertEqual(self.request(nodes_route,config)[0],200)
+            edges_route=root+'/node-continuation?department=testing'
+            config=self.request(edges_route)[1]
+            edge=next(e for e in config['edges'] if e['source']=='testing:2')
+            self.assertTrue(edge['available'],edge)
+            self.assertEqual(self.request(edges_route,{'revision':config['revision'],'source':'testing:2','target':'testing:4','enabled':True})[0],200)
         _,task=self.request('/api/projects/'+project['id']+'/tasks',{'title':'非真实Bug'})
         route='/api/projects/'+project['id']+'/tasks/'+task['id']
         def update(endpoint,body=None,code=200):
@@ -68,11 +82,26 @@ class WorkflowE2ETests(unittest.TestCase):
             update('execution-mapping',{'mappings':[{'case_id':'c','result_ids':['0','1'],'reason':'样例映射'}]})
         with patch('server.app.inspect_project',return_value=binding):
             update('decisions',{'action':'confirm'})
-        update('triage',{'roots':[{'id':'root','title':'同一个样例根因','confirmed':True,'evidence':['fixture evidence']}],
-                         'assignments':[{'result_id':str(i),'root_cause_id':'root'} for i in range(2)]})
+        triage={'roots':[{'id':'root','title':'同一个样例根因','confirmed':True,'evidence':['fixture evidence']}],
+                'assignments':[{'result_id':str(i),'root_cause_id':'root'} for i in range(2)]}
+        update('triage',triage)
+        if merged:
+            self.assertEqual(self.request(route+'/decisions',{'action':'confirm','revision':task['revision']})[0],409)
+            update('triage',{**triage,'filing':{'selected':['root'],'excluded':{}}})
         update('decisions',{'action':'confirm'})
-        update('filter',{'selected':['root'],'excluded':{}})
-        update('decisions',{'action':'confirm'})
+        if merged:
+            self.assertEqual(task['stage'],4)
+            self.assertEqual(task['artifacts']['2']['filing_scope']['result_ids'],['0','1'])
+            deadline=time.monotonic()+5
+            while time.monotonic()<deadline:
+                task=self.request(route)[1]
+                if '4' in task['artifacts']:break
+                time.sleep(.02)
+            self.assertIn('4',task['artifacts'],'自动继续应准备草稿，但不发布')
+            self.assertFalse(task['artifacts']['4']['publication_complete'])
+        else:
+            update('filter',{'selected':['root'],'excluded':{}})
+            update('decisions',{'action':'confirm'})
         update('bug-drafts',{'observations':[] if static else [{'result_id':'0','preconditions':['样例条件'],
                                             'steps':['执行样例'],'expected':'1','actual':'0'}]})
         self.assertEqual(len(task['artifacts']['4']['drafts']),1)

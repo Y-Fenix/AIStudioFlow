@@ -1,0 +1,7 @@
+interface:
+  display_name: "GagaSort QA"
+  short_description: "手动调用的 GagaSort 代码与配置巡检，提供证据和检查报告"
+  default_prompt: "使用 $gagasort-qa 执行 GagaSort 代码与配置巡检。"
+
+policy:
+  allow_implicit_invocation: false

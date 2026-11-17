@@ -3,6 +3,119 @@ from pathlib import Path
 from unittest.mock import patch
 
 class ResponsesTests(unittest.TestCase):
+    def test_real_failed_stream_retries_when_macos_denies_process_group_cleanup(self):
+        import threading
+        from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
+        from server.codex_model import CodexModel,diagnostic_scope
+        from server.responses_model import Connection
+        seen=[];release=threading.Event();diagnostics=[]
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self,*args):pass
+            def do_POST(self):
+                seen.append(json.loads(self.rfile.read(int(self.headers['Content-Length']))))
+                self.send_response(200);self.send_header('Content-Type','text/event-stream');self.end_headers()
+                event=({'error':{'message':'temporary stream failure'}} if len(seen)==1 else
+                    {'choices':[{'delta':{'content':'{"ok":true}'},'finish_reason':'stop'}]})
+                self.wfile.write(('data: '+json.dumps(event)+'\n\n').encode());self.wfile.flush()
+                if len(seen)==1:release.wait(5)
+        server=ThreadingHTTPServer(('127.0.0.1',0),Handler)
+        thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
+        try:
+            connection=Connection('http://127.0.0.1:'+str(server.server_port)+'/chat/completions','fixture',protocol='chat')
+            with patch.dict('os.environ',{'TESTFLOW_CODEX_TRANSPORT':'auto'}), \
+                 patch('server.responses_model.configured_connection',return_value=connection), \
+                 patch('server.processes.os.killpg',side_effect=PermissionError(1,'Operation not permitted')) as kill, \
+                 diagnostic_scope(diagnostics.append):
+                result=CodexModel().request_json('Return JSON')
+            self.assertTrue(kill.called,'exercise cleanup of the real failed streaming worker')
+        finally:release.set();server.shutdown();server.server_close();thread.join()
+        self.assertEqual(result,{'ok':True})
+        self.assertEqual(len(seen),2)
+        self.assertTrue(any(d['state']=='retrying' for d in diagnostics))
+
+    def test_malformed_gateway_envelope_is_a_classified_transport_failure(self):
+        from server.responses_model import request_json, Connection
+        from server.codex_model import GatewayFailure
+        events = [
+            {'type': 'response.completed', 'response': []},
+            {'type': 'response.completed', 'response': ['private']},
+            {'type': 'response.output_text.delta', 'delta': {'private': 'text'}},
+            {'type': 'response.completed', 'response': {'status': 'completed', 'output': [None]}},
+            {'type': 'response.completed', 'response': {'status': 'completed', 'output': [
+                {'type': 'message', 'role': 'assistant', 'content': [{'type': 'output_text', 'text': {}}]}]}},
+        ]
+        for event in events:
+            with self.subTest(event=event):
+                def run(command, **kwargs):
+                    Path(command[command.index('--output')+1]).write_text('data: '+json.dumps(event)+'\n\n')
+                    kwargs['stdout'].write('200'); kwargs['stdout'].flush()
+                    return type('Result', (), {'returncode': 0})()
+                with patch('server.responses_model.run_process', side_effect=run):
+                    with self.assertRaises(GatewayFailure) as failure:
+                        request_json(Connection('https://example.test/responses', 'key'),
+                            'JSON', 'gpt-6.1-sol', 'high', 600, None)
+                self.assertTrue(failure.exception.retryable)
+                self.assertNotIn('private', str(failure.exception))
+
+    def test_real_http_completion_does_not_wait_for_server_to_close_connection(self):
+        import threading, time
+        from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+        from server.responses_model import request_json, Connection
+        release = threading.Event()
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self, *args): pass
+            def do_POST(self):
+                self.rfile.read(int(self.headers['Content-Length']))
+                self.send_response(200); self.send_header('Content-Type', 'text/event-stream'); self.end_headers()
+                event = {'type': 'response.completed', 'response': {'status': 'completed', 'output': [
+                    {'type': 'message', 'role': 'assistant', 'content': [{'type': 'output_text', 'text': '{"ok":true}'}]}]}}
+                self.wfile.write(('data: '+json.dumps(event)+'\n\n').encode()); self.wfile.flush()
+                release.wait(3)
+        server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
+        started = time.monotonic()
+        try:
+            result = request_json(Connection('http://127.0.0.1:'+str(server.server_port)+'/responses', 'key'),
+                'JSON', 'gpt-6.1-sol', 'high', 5, None)
+            elapsed = time.monotonic()-started
+        finally:
+            release.set(); server.shutdown(); server.server_close(); thread.join()
+        self.assertEqual(result, {'ok': True})
+        self.assertLess(elapsed, 1.5, '完成事件后不能继续等连接EOF')
+
+    def test_completed_fenced_json_is_accepted_without_changing_values(self):
+        from server.responses_model import request_json, Connection
+        def run(command, **kwargs):
+            event = {'type': 'response.completed', 'response': {'status': 'completed', 'output': [
+                {'type': 'message', 'role': 'assistant', 'content': [
+                    {'type': 'output_text', 'text': '```json\n{"quote":"exact text"}\n```'}]}]}}
+            Path(command[command.index('--output')+1]).write_text('data: '+json.dumps(event)+'\n\n')
+            kwargs['stdout'].write('200'); kwargs['stdout'].flush()
+            return type('Result', (), {'returncode': 0})()
+        with patch('server.responses_model.run_process', side_effect=run):
+            self.assertEqual(request_json(Connection('https://example.test/responses', 'key'),
+                'JSON', 'gpt-6.1-sol', 'high', 600, None), {'quote': 'exact text'})
+
+    def test_complete_malformed_output_keeps_raw_for_recovery_without_logging_it(self):
+        from server.responses_model import request_json, Connection
+        from server.model_output import ModelOutputError
+        raw = '{"private":"requirement text",}'
+        diagnostics = []
+        def run(command, **kwargs):
+            event = {'type': 'response.completed', 'response': {'status': 'completed', 'output': [
+                {'type': 'message', 'role': 'assistant', 'content': [{'type': 'output_text', 'text': raw}]}]}}
+            Path(command[command.index('--output')+1]).write_text('data: '+json.dumps(event)+'\n\n')
+            kwargs['stdout'].write('200'); kwargs['stdout'].flush()
+            return type('Result', (), {'returncode': 0})()
+        with patch('server.responses_model.run_process', side_effect=run):
+            with self.assertRaises(ModelOutputError) as failure:
+                request_json(Connection('https://example.test/responses', 'secret-key'),
+                    'JSON', 'gpt-6.1-sol', 'high', 600, diagnostics.append)
+        self.assertEqual(failure.exception.raw_text, raw)
+        self.assertEqual(diagnostics[-1]['state'], 'invalid_json')
+        self.assertNotIn('requirement text', json.dumps(diagnostics))
+        self.assertNotIn('secret-key', str(failure.exception))
+
     def test_custom_provider_selected_without_exposing_key(self):
         from server.responses_model import configured_connection
         with tempfile.TemporaryDirectory() as d:

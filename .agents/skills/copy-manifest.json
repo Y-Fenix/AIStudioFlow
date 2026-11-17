@@ -1,0 +1,44 @@
+[
+  {
+    "name": "test-case",
+    "source": "/Users/yf/.codex/skills/test-case",
+    "local": "/Users/yf/Documents/AutoTest/.agents/skills/test-case",
+    "source_sha256": "dd0c4011f4668eba907939008cb3b95f24c09811e45f60d06fee9067b4b6fe26"
+  },
+  {
+    "name": "test-codetest",
+    "source": "/Users/yf/.codex/skills/test-codetest",
+    "local": "/Users/yf/Documents/AutoTest/.agents/skills/test-codetest",
+    "source_sha256": "6fd9c8ad45598c32705f48bcee568bdd067075a095d0eb8bfbe34fdc87b1c8dd"
+  },
+  {
+    "name": "test-server-sdk",
+    "source": "/Users/yf/.codex/skills/test-server-sdk",
+    "local": "/Users/yf/Documents/AutoTest/.agents/skills/test-server-sdk",
+    "source_sha256": "79d58c2523d6fdba64307da2c08d4ba32d14202d67ef73cca9f58542c8eb7d36"
+  },
+  {
+    "name": "gagasort-qa",
+    "source": "/Users/yf/.agents/skills/gagasort-qa",
+    "local": "/Users/yf/Documents/AutoTest/.agents/skills/gagasort-qa",
+    "source_sha256": "1bafd011c82269ac3bd6baaf7f690bc795394ad3fb29986d7107f2ea5b179c9b"
+  },
+  {
+    "name": "writing-plans",
+    "source": "/Users/yf/.codex/skills/writing-plans",
+    "local": "/Users/yf/Documents/AutoTest/.agents/skills/writing-plans",
+    "source_sha256": "4fd4627d2c02367879c0307d7249270bed633317ff9be82e926a6d57bf5d331b"
+  },
+  {
+    "name": "ui-ux-pro-max",
+    "source": "/Users/yf/.codex/skills/ui-ux-pro-max",
+    "local": "/Users/yf/Documents/AutoTest/.agents/skills/ui-ux-pro-max",
+    "source_sha256": "ea087c341bfb5b23195c7302027268ede86da802554c18a5c4896a6017b439f9"
+  },
+  {
+    "name": "openai-docs",
+    "source": "/Users/yf/.codex/skills/.system/openai-docs",
+    "local": "/Users/yf/Documents/AutoTest/.agents/skills/openai-docs",
+    "source_sha256": "aa6829e21df2223167c85d2e49b6337a7345c84c1033f1ec10182c7882b36d45"
+  }
+]

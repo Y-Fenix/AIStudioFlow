@@ -6,6 +6,7 @@ from html import escape
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
+from server.core.public_area.client import RemoteError
 from server.store import Store
 from server.requirements import review_cases
 from server.model import ModelClient
@@ -27,16 +28,24 @@ from server.status_change import StatusChanges
 ROOT = Path(__file__).resolve().parent.parent
 
 
-def create_server(host='127.0.0.1', port=8766, database=None, registry=None, local_development=False):
+def create_server(host='127.0.0.1', port=8766, database=None, registry=None, local_development=False, runtime_mode='team'):
     """为测试或本地执行创建独立服务实例。"""
-    store = Store(database or ROOT / 'data/platform.sqlite')
+    if runtime_mode not in ('team','personal','public'):raise ValueError('未知部署模式')
+    if runtime_mode=='personal' and host not in ('127.0.0.1','localhost','::1'):raise ValueError('个人模式仅允许监听本机')
+    if runtime_mode=='public' and local_development:raise ValueError('公区禁止本机免登录绕过')
+    default_database = {'team':'data/platform.sqlite','personal':'data/personal/platform.sqlite','public':'data/public-area/platform.sqlite'}[runtime_mode]
+    store = Store(database or ROOT / default_database)
+    store.runtime_mode=runtime_mode
+    from server.core.public_area.schema import migrate as public_migrate
+    public_migrate(store)
     publications = PublicationLedger(store)
-    publications.recover_interrupted()
     status_changes = StatusChanges(store)
-    status_changes.recover_interrupted()
+    if runtime_mode!='public':
+        publications.recover_interrupted()
+        status_changes.recover_interrupted()
     from server.ai_models import ModelSettings
     model_settings=ModelSettings(store)
-    worker = GenerationWorker(store)
+    worker = GenerationWorker(store) if runtime_mode!='public' else None
     from server.studio_workspaces import Workspaces
     workspaces = Workspaces(store)
     from server.core.auth import Authentication, AuthenticationRequired, cookie_value
@@ -45,19 +54,39 @@ def create_server(host='127.0.0.1', port=8766, database=None, registry=None, loc
     from server.core.permissions import AccessDenied, Policy
     from server.core.routes import dispatch as team_dispatch
     auth = Authentication(store, local_development=local_development)
+    if runtime_mode=='public' and auth.config()['mode']!='password':raise ValueError('公区需要账号密码认证')
     from server.core.local_accounts import LocalAccounts, LoginThrottled
     accounts = LocalAccounts(store)
     gateway = Gateway(store)
     from server.core.integrations import AdapterRegistry
-    registry = registry or AdapterRegistry().load_modules()
+    registry = registry or (AdapterRegistry().load_modules() if runtime_mode!='public' else AdapterRegistry())
+    from server.core.node_memory import NodeMemoryWorker
+    memory_worker = NodeMemoryWorker(store) if runtime_mode!='public' else None
     from server.department_jobs import DepartmentExecutionWorker
-    department_worker = DepartmentExecutionWorker(store, registry)
+    department_worker = DepartmentExecutionWorker(store, registry) if runtime_mode!='public' else None
+    from server.core.node_blocks.contracts import load_modules as load_block_modules
+    if runtime_mode!='public':load_block_modules()
+    from server.core.node_blocks.runtime import BlockWorker
+    block_worker = BlockWorker(store, registry) if runtime_mode!='public' else None
     from server.core.node_continuation import ContinuationWorker
-    continuation_worker = ContinuationWorker(store, registry)
-    if host not in ('127.0.0.1','localhost','::1') and (local_development or auth.config()['mode'] not in ('team','password') or not auth.config().get('public_url','').startswith('https://')):
+    continuation_worker = ContinuationWorker(store, registry) if runtime_mode!='public' else None
+    from server.core.testing_automation import TestingAutomation, TestingAutomationWorker
+    testing_automation = TestingAutomation(store)
+    testing_automation_worker = TestingAutomationWorker(testing_automation) if runtime_mode!='public' else None
+    lan_http=auth.config().get('mode')=='password' and auth.config().get('allow_lan_http') is True and auth.config().get('public_url','').startswith('http://')
+    if lan_http:
+        from server.core.notification_settings import site_url
+        site_url(auth.config()['public_url'])
+    if host not in ('127.0.0.1','localhost','::1') and (local_development or auth.config()['mode'] not in ('team','password') or not (auth.config().get('public_url','').startswith('https://') or lan_http)):
         raise ValueError('非回环监听需要先配置并启用团队认证')
     from server.core.skill_library import SkillCleanupWorker
-    skill_cleanup = SkillCleanupWorker(store)
+    skill_cleanup = SkillCleanupWorker(store) if runtime_mode!='public' else None
+    from server.core.notifications import NotificationWorker
+    notification_worker = NotificationWorker(store) if runtime_mode!='personal' else None
+    from server.core.public_area.maintenance import PublicMaintenance
+    public_maintenance = PublicMaintenance(store) if runtime_mode=='public' else None
+    from server.core.production_runs import ProductionWorker, dispatch as production_dispatch
+    production_worker = ProductionWorker(store, registry) if runtime_mode!='public' else None
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, format, *args):
@@ -100,6 +129,11 @@ def create_server(host='127.0.0.1', port=8766, database=None, registry=None, loc
             identity_token = None
             self.team_scope = {}
             try:
+                from server.core.public_area.routes import public_allowed, dispatch as public_dispatch
+                from server.core.public_area.service import Conflict
+                if runtime_mode=='public' and url.path.startswith('/api/') and not public_allowed(parts,write):
+                    raise PermissionError('公区服务器不提供个人工作区、模型或执行接口')
+                if parts==['api','runtime'] and not write:return self.send_json(200,{'mode':runtime_mode})
                 body = {}
                 if write:
                     origin = self.headers.get('Origin')
@@ -109,11 +143,12 @@ def create_server(host='127.0.0.1', port=8766, database=None, registry=None, loc
                     if self.headers.get_content_type() != 'application/json':
                         raise ValueError('需要 JSON 请求')
                     size = int(self.headers.get('Content-Length', '0'))
-                    if not 0 < size <= 1048576:
+                    if not 0 < size <= (3*1024*1024 if 'public' in parts or 'public-local' in parts else 1048576):
                         raise ValueError('请求大小不合法')
                     body = json.loads(self.rfile.read(size))
                     if not isinstance(body, dict):
                         raise ValueError('请求必须为对象')
+                if runtime_mode=='public' and (url.path.startswith('/auth/feishu/') or parts==['api','admin','auth'] and write and body.get('mode','password')!='password'):raise PermissionError('公区只使用账号密码认证')
                 if parts == ['auth','feishu','login'] and not write:
                     public=auth.config().get('public_url','')
                     if public and self.headers.get('Host')!=urlsplit(public).netloc:return self.redirect(public+'/auth/feishu/login')
@@ -168,6 +203,11 @@ def create_server(host='127.0.0.1', port=8766, database=None, registry=None, loc
                         return self.send_json(200,result,[self.auth_cookie('studioflow_session','',0)])
                     if parts == ['api','admin','users','password'] and write:
                         return self.send_json(200,accounts.reset_password(body))
+                    if public_dispatch(self,parts,url.query,body,write,store):return
+                    if runtime_mode!='public':
+                        from server.core.public_area.local import dispatch as local_public_dispatch
+                        if local_public_dispatch(self,parts,url.query,body,write,store):return
+                    if production_dispatch(self,parts,body,write,production_worker.service if production_worker else None):return
                     if team_dispatch(self,parts,url.query,body,write,auth,store,registry):return
                     self.team_scope=gateway.authorize(parts,url.query,body,write)
                 studio_scope = None
@@ -273,6 +313,10 @@ def create_server(host='127.0.0.1', port=8766, database=None, registry=None, loc
                     if len(parts) == 6 and parts[5] == 'reset-node' and write:
                         return self.send_json(200,store.reset_node(project,parts[4],body.get('stage'),
                             body.get('revision'),body.get('reason'),body.get('confirmed')))
+                    if len(parts) == 6 and parts[5] == 'cancel-operation' and write:
+                        return self.send_json(200,store.cancel_operation(project,parts[4],body.get('job_id'),body.get('revision')))
+                    if len(parts) == 6 and parts[5] == 'restore-cancelled' and write:
+                        return self.send_json(200,store.restore_cancelled_task(project,parts[4],body.get('revision')))
                     if len(parts) == 6 and write and parts[5] in ('feishu-requirements','file-requirements','referenced-requirements','attachment-requirement'):
                         if store.task(project,parts[4])['status'] in ('cancelled','completed'):
                             raise ValueError('任务已结束，请先重置用例节点或建立新批次')
@@ -490,15 +534,32 @@ def create_server(host='127.0.0.1', port=8766, database=None, registry=None, loc
                     if len(parts) == 6 and parts[5] in ('triage', 'filter') and write:
                         snapshot = store.task(project, parts[4])
                         stage = 2 if parts[5] == 'triage' else 3
-                        if snapshot['stage'] != stage or snapshot['revision'] != body.get('revision'):
+                        from server.core.project_nodes import testing_filter_merged
+                        with store.connection() as db:merged=testing_filter_merged(db,project)
+                        recovery=stage==2 and snapshot['stage']==3 and merged
+                        if (snapshot['stage'] != stage and not recovery) or snapshot['revision'] != body.get('revision'):
                             raise ValueError('节点或版本已变化，请刷新')
                         if stage == 2:
                             result = triage_report(snapshot['artifacts']['1']['results'],
                                 body.get('assignments'), body.get('roots'), body.get('exclusions', []))
+                            if merged and 'filing' in body:
+                                filing=body['filing']
+                                if not isinstance(filing,dict):raise ValueError('提单范围格式错误')
+                                result['filing_scope']=filter_groups(result,filing.get('selected'),filing.get('excluded'))
                         else:
                             result = filter_groups(snapshot['artifacts']['2'], body.get('selected'), body.get('excluded'))
                         return self.send_json(200, store.record_artifact(project, parts[4], stage, result,
                             expected_revision=snapshot['revision']))
+                    if len(parts) == 6 and parts[5] == 'automation':
+                        result = testing_automation.save(project, parts[4], body) if write else testing_automation.get(project, parts[4])
+                        return self.send_json(200, result)
+                    if len(parts) == 6 and parts[5] == 'start-static-review' and write:
+                        snapshot = store.task(project, parts[4])
+                        binding = snapshot['binding']
+                        if not binding:raise ValueError('请先填写仓库路径并绑定指定分支')
+                        current = inspect_project(binding['repository'], binding['branch'])
+                        current['execution_suite'] = 'static'
+                        return self.send_json(202, store.start_static_review(project, parts[4], current, body.get('revision')))
                     if len(parts) == 6 and parts[5] == 'execution-binding' and write:
                         store.task(project, parts[4])
                         binding = inspect_project(body.get('path'), body.get('branch'))
@@ -641,6 +702,10 @@ def create_server(host='127.0.0.1', port=8766, database=None, registry=None, loc
                         self.wfile.write(payload)
                         return
                 self.send_json(404, {'error': '资源不存在'})
+            except RemoteError as exc:
+                self.send_json(exc.status if exc.status in (400,401,403,404,409,429) else 502, {'error':str(exc)})
+            except Conflict as exc:
+                self.send_json(409, {'error':str(exc)})
             except LoginThrottled as exc:
                 self.send_json(429, {'error':str(exc)})
             except AuthenticationRequired as exc:
@@ -656,11 +721,11 @@ def create_server(host='127.0.0.1', port=8766, database=None, registry=None, loc
 
     class Server(ThreadingHTTPServer):
         def server_close(self):
-            worker.stop.set()
-            worker.thread.join(timeout=5)
-            continuation_worker.close()
-            department_worker.close()
-            skill_cleanup.close()
+            for execution_worker in (production_worker,testing_automation_worker,continuation_worker,department_worker,memory_worker,block_worker,skill_cleanup,public_maintenance):
+                if execution_worker:execution_worker.close()
+            if worker:
+                worker.close()
+            if notification_worker:notification_worker.close()
             super().server_close()
     return Server((host, port), Handler)
 
@@ -670,8 +735,9 @@ if __name__ == '__main__':
     parser.add_argument('--port', type=int, default=8766)
     parser.add_argument('--host', default='127.0.0.1')
     parser.add_argument('--database', default=None)
+    parser.add_argument('--mode',choices=('team','personal','public'),default='team')
     args = parser.parse_args()
-    http = create_server(host=args.host,port=args.port,database=args.database)
+    http = create_server(host=args.host,port=args.port,database=args.database,runtime_mode=args.mode)
     print(f'平台服务：http://{args.host}:{args.port}', flush=True)
     try:
         http.serve_forever()

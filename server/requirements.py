@@ -26,8 +26,10 @@ def validate_cases(output, requirements):
         text(point.get('title'), '测试点名称')
         source = point.get('requirement_id')
         quote = text(point.get('quote'), '来源引用')
-        if source not in sources or quote not in sources[source]:
-            raise ValueError('测试点来源或引用不存在')
+        if not isinstance(source, str) or source not in sources:
+            raise ValueError(f'测试点来源或引用不存在：测试点 {point_id} 的 requirement_id 不在本次资料中')
+        if quote not in sources[source]:
+            raise ValueError(f'测试点来源或引用不存在：测试点 {point_id} 的 quote 不是所给正文的连续原文')
         points[point_id] = point
     if not points:
         raise ValueError('没有可审阅的测试点')
@@ -66,7 +68,7 @@ def validate_cases(output, requirements):
         covered.update(refs)
     gaps = set()
     for gap in output['gaps']:
-        if not isinstance(gap, dict) or gap.get('point_id') not in points:
+        if not isinstance(gap, dict) or not isinstance(gap.get('point_id'), str) or gap['point_id'] not in points:
             raise ValueError('覆盖缺口引用不存在')
         text(gap.get('reason'), '缺口原因')
         gaps.add(gap['point_id'])

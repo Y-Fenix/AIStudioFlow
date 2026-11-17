@@ -5,7 +5,7 @@ from server.studio_catalog import DEPARTMENTS, node_definition
 ACTIONS = ('view','edit','execute','approve','create','delete','import','export','manage','reorder')
 # Connector permissions are exact-match only. In particular, a node grant never
 # implicitly authorizes access to a server-side external system.
-RESOURCES = ('platform','studio','project','department','node','skill','model','permission','gm','content')
+RESOURCES = ('platform','studio','project','department','node','skill','model','permission','gm','content','block','workflow','workflow_node','workflow_skill','publication')
 DEPARTMENT_IDS = tuple(d['id'] for d in DEPARTMENTS)
 
 
@@ -19,7 +19,13 @@ class Policy:
     def allowed(self, resource, action, studio='', project='', department='', node='', actor=None):
         actor = user_id(actor)
         if resource not in RESOURCES or action not in ACTIONS: return False
-        if node:
+        if resource in ('workflow_node','workflow_skill'):
+            if not studio or not project or department:return False
+            if node:
+                from server.core.node_blocks.flow_nodes import validate_coordinate
+                try:validate_coordinate(self.store,project,node)
+                except ValueError:return False
+        elif node:
             try: definition = node_definition(node,self.store,project)
             except ValueError: return False
             if department and department != definition[0]['id']: return False
@@ -36,7 +42,7 @@ class Policy:
             if project:
                 p = db.execute('SELECT studio_id,archived FROM projects WHERE id=?',(project,)).fetchone()
                 if not p or p['archived'] or p['studio_id'] != studio: return False
-            memberships = [dict(r) for r in db.execute('SELECT * FROM team_members WHERE user_id=? AND studio_id=? AND project_id IN (?,?)',(actor,studio,'',project))]
+            memberships = [dict(r) for r in db.execute('SELECT * FROM team_members WHERE user_id=? AND studio_id=?' + ('' if resource=='block' else ' AND project_id IN (?,?)'),(actor,studio) if resource=='block' else (actor,studio,'',project))]
             rules = db.execute('SELECT * FROM permission_rules WHERE studio_id IN (?,?) AND project_id IN (?,?) AND department IN (?,?) AND node IN (?,?)',('',studio,'',project,'',department,'',node)).fetchall()
             allowed = False
             for rule in rules:
@@ -48,6 +54,9 @@ class Policy:
                     if rule['effect']=='deny': return False
                     allowed=True
             if allowed: return True
+            if resource=='block':
+                if action=='view' and any(m['department']==department for m in memberships):return True
+                return bool(db.execute("SELECT 1 FROM studio_memberships WHERE studio_id=? AND user_id=? AND role='studio_owner'",(studio,actor)).fetchone())
             if resource=='content':
                 if action=='view':return any(m['department']==department for m in memberships)
                 if action not in ('create','delete'):return False
@@ -65,7 +74,7 @@ class Policy:
                     return any(m['role']=='project_lead' and m['project_id']=='' for m in memberships)
                 if resource=='project' and action=='delete':
                     return any(m['role']=='project_lead' and m['project_id']==project for m in memberships)
-                return resource in ('studio','project','department','node','skill','permission') and not (resource=='studio' and action in ('create','delete'))
+                return resource in ('studio','project','department','node','skill','permission','workflow','workflow_node','workflow_skill','publication') and not (resource=='studio' and action in ('create','delete'))
             own = [m for m in memberships if m['department']==department]
             if resource in ('department','node') and own:
                 return action in ('view','edit','execute','import','export') or action=='approve' and any(m['role']=='lead' for m in own)
@@ -105,6 +114,8 @@ class Policy:
                 'project_delete':self.allowed('project','delete',studio,project),
                 'permission_manage':self.allowed('permission','manage',studio,project),
                 'model_edit':self.allowed('model','edit'),
+                'workflow':{a:self.allowed('workflow',a,studio,project) for a in ('view','create','edit','delete','execute','approve')},
+                'block_templates':{d['id']:{a:self.allowed('block',a,studio,department=d['id']) for a in ('view','create','edit','delete')} for d in DEPARTMENTS},
                 'content':{d['id']:{a:self.allowed('content',a,studio,project,d['id']) for a in ('create','delete')} for d in DEPARTMENTS},
                 'node_management':{d['id']:{a:self.allowed('node',a,studio,project,d['id']) for a in ('create','delete','reorder')} for d in DEPARTMENTS},
                 'nodes':{key:{action:self.allowed('node',action,studio,project,node=key) for action in ('view','edit','execute','approve','import','export','delete')} |

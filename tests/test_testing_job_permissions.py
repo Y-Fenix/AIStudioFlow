@@ -12,7 +12,7 @@ from server.core.admin import Administration
 from server.core.identity import current_user
 from server.jobs import GenerationWorker
 from server.store import Store
-from server.processes import run
+from server.processes import run, check_cancelled
 from server.core.queued_operations import authorize_testing_job
 
 
@@ -56,9 +56,8 @@ class TestingJobPermissionsTests(unittest.TestCase):
         self.fail('fixture worker did not finish')
 
     def close_worker(self, worker):
-        worker.stop.set()
-        worker.thread.join(5)
-        self.assertFalse(worker.thread.is_alive())
+        worker.close()
+        self.assertTrue(all(not thread.is_alive() for thread in worker.threads))
 
     def test_job_persists_the_enqueuing_actor(self):
         self.assertEqual(self.enqueue().get('actor'), 'tester')
@@ -155,6 +154,38 @@ class TestingJobPermissionsTests(unittest.TestCase):
                        (str(repository.parent / 'different-code'), self.project))
         with self.assertRaisesRegex(PermissionError, '代码目录授权已变化'):
             authorize_testing_job(self.store, job)
+
+    def test_repeated_cancellation_checks_do_not_reload_case_matrix(self):
+        reads = []
+        original = self.store.task
+        def tracked(*args, **kwargs):
+            reads.append(args)
+            return original(*args, **kwargs)
+        def generate(_client, _requirements):
+            before = len(reads)
+            for _ in range(20):
+                check_cancelled()
+            self.assertEqual(len(reads), before, 'cancellation must not hydrate all cases and requirements per file')
+            return {'cases': []}
+        with patch.object(self.store, 'task', side_effect=tracked), patch('server.jobs.CodexModel.generate', generate):
+            worker = GenerationWorker(self.store)
+            try:
+                result = self.wait_finished(self.enqueue())
+            finally:
+                self.close_worker(worker)
+        self.assertEqual(result['status'], 'completed', result['error'])
+
+    def test_code_authorization_does_not_hydrate_full_task(self):
+        repository = Path(self.temp.name) / 'authorized-code'
+        repository.mkdir()
+        task = self.store.task(self.project, self.task)
+        self.store.bind_execution(self.project, self.task, {'repository': str(repository)}, task['revision'])
+        with self.store.connection() as db:
+            db.execute('INSERT INTO project_connections(project_id,repository,updated_by) VALUES(?,?,?)',
+                       (self.project, str(repository), 'local'))
+        job = {'actor': 'tester', 'kind': 'execute', 'project_id': self.project, 'task_id': self.task}
+        with patch.object(self.store, 'task', side_effect=AssertionError('permission probes must not load cases')):
+            self.assertEqual(authorize_testing_job(self.store, job), 1)
 
 
 if __name__ == '__main__':

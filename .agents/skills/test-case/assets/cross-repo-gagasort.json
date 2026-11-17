@@ -1,0 +1,306 @@
+{
+  "schema_version": 1,
+  "project": "gagasort",
+  "revision": "2026-11-09.1",
+  "notes": [
+    "仅为已核对的定位入口，不是完整依赖清单或已完成的业务审查。",
+    "本地 HEAD 不代表包内 SDK 或线上部署。Android/iOS 分别取证；未用服务端转发的事件给出旁路证据后拆分断言，不虚构调用链。",
+    "缺失锚点不能推断缺功能；先重新定位、补实际依赖后建新快照。"
+  ],
+  "release_mapping": {
+    "client": {
+      "state": "unknown",
+      "evidence": null
+    },
+    "android": {
+      "state": "unknown",
+      "evidence": null
+    },
+    "ios": {
+      "state": "unknown",
+      "evidence": null
+    },
+    "sdkserver": {
+      "state": "unknown",
+      "evidence": null
+    },
+    "gameserver": {
+      "state": "unknown",
+      "evidence": null
+    }
+  },
+  "repositories": {
+    "client": {
+      "anchors": [
+        "GagaSort/Assets/Scripts/AWFramework/SDK/BBSDK/BBSDKUtil.cs",
+        "GagaSort/Assets/Scripts/AWFramework/SDK/BBSDK/SdkCallback.cs",
+        "pub/iOS/Podfile",
+        "pub/iOS/Podfile.lock"
+      ]
+    },
+    "android": {
+      "anchors": [
+        "bbsdk-gpbilling/src/main/kotlin/com/maxx/sdk/android/gp/BillingManager.kt",
+        "bbsdk-core/src/main/kotlin/com/maxx/sdk/android/core/gp/IapOrderStorage.kt",
+        "bbsdk-core/src/main/kotlin/com/maxx/sdk/android/core/Dispatcher.kt",
+        "bbsdk-core/src/main/kotlin/com/maxx/sdk/android/core/log/SdkLog.kt",
+        "bbsdk-core/src/main/kotlin/com/maxx/sdk/android/core/td/TdManager.kt",
+        "bbsdk-core/src/main/kotlin/com/maxx/sdk/android/core/net/login/SdkLoginSuccessDispatcher.kt"
+      ]
+    },
+    "ios": {
+      "anchors": [
+        "BBSDKUnity/BBSDKNativeCall.swift",
+        "Modules/Core/Sources/UnityDispatcher.swift",
+        "Modules/IAP/Sources/BBSDKInApp.swift",
+        "Modules/IAP/Sources/BBSDKIAP.swift",
+        "Modules/AdMax/Sources/BBSDKAdMax.swift",
+        "Modules/TA/Sources/BBSDKTA.swift",
+        "Modules/Firebase/Sources/BBSDKFirebase.swift",
+        "Modules/Adjust/Sources/BBSDKAdjust.swift",
+        "Modules/Log/Sources/log/BBSDKS2SLogStore.swift"
+      ]
+    },
+    "sdkserver": {
+      "anchors": [
+        "shared/iap/deliver.js",
+        "shared/iap/deliverRetry.js",
+        "shared/iap/callback.js",
+        "shared/iap/order.js",
+        "src/iap/iap_order.js",
+        "src/iap/http_handler_order_finish.js",
+        "src/iap/iap_order_cp_finish.js",
+        "src/login/http_handler_login.js",
+        "src/login/http_handler_login2.js",
+        "src/login/http_handler_identity_update.js",
+        "src/login/user_service.js",
+        "src/login/versionConfig.js",
+        "src/bi/bi_event_wal.js",
+        "src/ad/ad_revenue_s2s.js",
+        "shared/firebase/measurementProtocol.js"
+      ]
+    },
+    "gameserver": {
+      "anchors": [
+        "src/glogin.js",
+        "src/gpreference.js",
+        "src/gpreferences.js",
+        "src/ccommon.js",
+        "src/rank/gcommon_report.js"
+      ]
+    }
+  },
+  "targets": [
+    {
+      "id": "purchase.android",
+      "domain": "iap",
+      "check": "商品/币种/环境/订单身份→原生拉起→取消/失败/成功回调，失败不发奖",
+      "repositories": [
+        "client",
+        "android"
+      ]
+    },
+    {
+      "id": "delivery.android",
+      "domain": "iap",
+      "check": "验单→项目路由→发货→订单幂等→到账与持久化；重复/乱序/补单/超时",
+      "repositories": [
+        "client",
+        "android",
+        "sdkserver",
+        "gameserver"
+      ]
+    },
+    {
+      "id": "ads.android",
+      "domain": "ads",
+      "check": "插屏/激励连续至少两次的状态推导；加载失败/关闭/重入/重复回调与奖励次数",
+      "repositories": [
+        "client",
+        "android"
+      ]
+    },
+    {
+      "id": "identity.android",
+      "domain": "installation",
+      "check": "覆盖旧档迁移、清本地同身份恢复、清本地新身份；身份绑定/合并冲突/付费与广告资格",
+      "repositories": [
+        "client",
+        "android",
+        "sdkserver",
+        "gameserver"
+      ]
+    },
+    {
+      "id": "tracking.android.thinkingdata",
+      "domain": "tracking",
+      "check": "thinkingdata：逐事件/属性/身份/项目分支追初始化→过滤→队列/重试/去重→原生或服务出口；不同出口分别追踪",
+      "repositories": [
+        "client",
+        "android"
+      ],
+      "conditional_repositories": [
+        "sdkserver",
+        "gameserver"
+      ]
+    },
+    {
+      "id": "tracking.android.adjust",
+      "domain": "tracking",
+      "check": "adjust：逐事件/属性/身份/项目分支追初始化→过滤→队列/重试/去重→原生或服务出口；不同出口分别追踪",
+      "repositories": [
+        "client",
+        "android"
+      ],
+      "conditional_repositories": [
+        "sdkserver",
+        "gameserver"
+      ]
+    },
+    {
+      "id": "tracking.android.firebase",
+      "domain": "tracking",
+      "check": "firebase：逐事件/属性/身份/项目分支追初始化→过滤→队列/重试/去重→原生或服务出口；不同出口分别追踪",
+      "repositories": [
+        "client",
+        "android"
+      ],
+      "conditional_repositories": [
+        "sdkserver",
+        "gameserver"
+      ]
+    },
+    {
+      "id": "tracking.android.bi",
+      "domain": "tracking",
+      "check": "bi：逐事件/属性/身份/项目分支追初始化→过滤→队列/重试/去重→原生或服务出口；不同出口分别追踪",
+      "repositories": [
+        "client",
+        "android"
+      ],
+      "conditional_repositories": [
+        "sdkserver",
+        "gameserver"
+      ]
+    },
+    {
+      "id": "purchase.ios",
+      "domain": "iap",
+      "check": "商品/币种/环境/订单身份→原生拉起→取消/失败/成功回调，失败不发奖",
+      "repositories": [
+        "client",
+        "ios"
+      ]
+    },
+    {
+      "id": "delivery.ios",
+      "domain": "iap",
+      "check": "验单→项目路由→发货→订单幂等→到账与持久化；重复/乱序/补单/超时",
+      "repositories": [
+        "client",
+        "ios",
+        "sdkserver",
+        "gameserver"
+      ]
+    },
+    {
+      "id": "ads.ios",
+      "domain": "ads",
+      "check": "插屏/激励连续至少两次的状态推导；加载失败/关闭/重入/重复回调与奖励次数",
+      "repositories": [
+        "client",
+        "ios"
+      ]
+    },
+    {
+      "id": "identity.ios",
+      "domain": "installation",
+      "check": "覆盖旧档迁移、清本地同身份恢复、清本地新身份；身份绑定/合并冲突/付费与广告资格",
+      "repositories": [
+        "client",
+        "ios",
+        "sdkserver",
+        "gameserver"
+      ]
+    },
+    {
+      "id": "tracking.ios.thinkingdata",
+      "domain": "tracking",
+      "check": "thinkingdata：逐事件/属性/身份/项目分支追初始化→过滤→队列/重试/去重→原生或服务出口；不同出口分别追踪",
+      "repositories": [
+        "client",
+        "ios"
+      ],
+      "conditional_repositories": [
+        "sdkserver",
+        "gameserver"
+      ]
+    },
+    {
+      "id": "tracking.ios.adjust",
+      "domain": "tracking",
+      "check": "adjust：逐事件/属性/身份/项目分支追初始化→过滤→队列/重试/去重→原生或服务出口；不同出口分别追踪",
+      "repositories": [
+        "client",
+        "ios"
+      ],
+      "conditional_repositories": [
+        "sdkserver",
+        "gameserver"
+      ]
+    },
+    {
+      "id": "tracking.ios.firebase",
+      "domain": "tracking",
+      "check": "firebase：逐事件/属性/身份/项目分支追初始化→过滤→队列/重试/去重→原生或服务出口；不同出口分别追踪",
+      "repositories": [
+        "client",
+        "ios"
+      ],
+      "conditional_repositories": [
+        "sdkserver",
+        "gameserver"
+      ]
+    },
+    {
+      "id": "tracking.ios.bi",
+      "domain": "tracking",
+      "check": "bi：逐事件/属性/身份/项目分支追初始化→过滤→队列/重试/去重→原生或服务出口；不同出口分别追踪",
+      "repositories": [
+        "client",
+        "ios"
+      ],
+      "conditional_repositories": [
+        "sdkserver",
+        "gameserver"
+      ]
+    }
+  ],
+  "candidate_tests": [
+    {
+      "repo": "sdkserver",
+      "path": "shared/iap/deliver.test.js",
+      "proves": "仅重试退避/上限，不证明发货与到账"
+    },
+    {
+      "repo": "sdkserver",
+      "path": "store/google/gp_purchase.test.js",
+      "proves": "仅订单分页，不证明真实购买"
+    },
+    {
+      "repo": "sdkserver",
+      "path": "shared/firebase/measurementProtocol.test.js",
+      "proves": "mock 转发路由、超时与失败分类，不证明平台入库"
+    },
+    {
+      "repo": "sdkserver",
+      "path": "src/bi/bi_event_wal.test.js",
+      "proves": "本地 WAL 与替身去重，不证明线上事件送达"
+    },
+    {
+      "repo": "sdkserver",
+      "path": "src/ad/ad_revenue_s2s.test.js",
+      "proves": "广告收入 S2S 的响应/去重/重试，不证明观看与发奖"
+    }
+  ]
+}

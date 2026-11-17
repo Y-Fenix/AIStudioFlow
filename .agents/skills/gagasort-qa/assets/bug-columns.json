@@ -1,0 +1,185 @@
+{
+  "source": "BUG管理.base",
+  "view": "未解决",
+  "fields": [
+    {
+      "name": "缺陷描述",
+      "type": "Text",
+      "options": []
+    },
+    {
+      "name": "期望描述",
+      "type": "Text",
+      "options": []
+    },
+    {
+      "name": "日志信息",
+      "type": "Text",
+      "options": []
+    },
+    {
+      "name": "截图/视频",
+      "type": "Attachment",
+      "options": []
+    },
+    {
+      "name": "版本号",
+      "type": "SingleSelect",
+      "options": [
+        "v1.6.0",
+        "v1.4.0",
+        "v1.2.5",
+        "v1.0.0",
+        "v0.9.1",
+        "v1.1.0",
+        "v1.2.0",
+        "v1.2.1",
+        "v1.3.0",
+        "v1.5.0",
+        "v1.5.3"
+      ]
+    },
+    {
+      "name": "滞留时长(天)",
+      "type": "Formula",
+      "options": []
+    },
+    {
+      "name": "创建人",
+      "type": "CreatedUser",
+      "options": []
+    },
+    {
+      "name": "操作平台",
+      "type": "SingleSelect",
+      "options": [
+        "Android",
+        "iOS",
+        "ALL"
+      ]
+    },
+    {
+      "name": "缺陷状态",
+      "type": "SingleSelect",
+      "options": [
+        "未解决",
+        "❓重新打开",
+        "⚠️待验证",
+        "✅验证通过",
+        "无法复现",
+        "已拒绝",
+        "挂起"
+      ]
+    },
+    {
+      "name": "严重程度",
+      "type": "SingleSelect",
+      "options": [
+        "致命",
+        "中等",
+        "一般",
+        "无影响",
+        "P1",
+        "P2",
+        "P3"
+      ]
+    },
+    {
+      "name": "优先级",
+      "type": "SingleSelect",
+      "options": [
+        "紧急",
+        "高",
+        "中",
+        "低"
+      ]
+    },
+    {
+      "name": "问题类型",
+      "type": "SingleSelect",
+      "options": [
+        "BUG缺陷",
+        "功能实现",
+        "体验问题",
+        "视觉还原"
+      ]
+    },
+    {
+      "name": "复现率",
+      "type": "SingleSelect",
+      "options": [
+        "必现",
+        "高频偶现",
+        "低频偶现",
+        "复现中"
+      ]
+    },
+    {
+      "name": "功能模块",
+      "type": "SingleSelect",
+      "options": [
+        "【基础规则】",
+        "【内购】",
+        "【埋点】",
+        "【冠军联赛】",
+        "【旅程】",
+        "【通行证】",
+        "【热更】",
+        "【广告】",
+        "【多语言】",
+        "【爬楼】",
+        "【周竞赛】",
+        "【排行榜】",
+        "【Lava】",
+        "气球活动",
+        "【系统通知】",
+        "【连胜分组】"
+      ]
+    },
+    {
+      "name": "修复人",
+      "type": "User",
+      "options": []
+    },
+    {
+      "name": "发现Jenkins构建号",
+      "type": "Text",
+      "options": []
+    },
+    {
+      "name": "验收Jenkins构建号",
+      "type": "Text",
+      "options": []
+    },
+    {
+      "name": "验收图片/视频",
+      "type": "Attachment",
+      "options": []
+    },
+    {
+      "name": "验收备注",
+      "type": "Text",
+      "options": []
+    },
+    {
+      "name": "创建时间",
+      "type": "CreatedTime",
+      "options": []
+    },
+    {
+      "name": "状态更新时间",
+      "type": "ModifiedTime",
+      "options": []
+    },
+    {
+      "name": "父记录",
+      "type": "SingleLink",
+      "options": []
+    },
+    {
+      "name": "父记录 2",
+      "type": "SingleLink",
+      "options": []
+    }
+  ]
+}

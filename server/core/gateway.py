@@ -6,7 +6,7 @@ from server.core.permissions import Policy, AccessDenied
 # Unknown legacy actions are denied, so new department code cannot bypass policy by accident.
 TEST_OPERATIONS = {
  'execution-mapping':(1,'edit'),'case-review':(0,'approve'),'edit-case':(0,'edit'),
- 'execution-binding':(1,'edit'),'execute-logic':(1,'execute'),'editor-preflight':(1,'view'),
+ 'execution-binding':(1,'edit'),'start-static-review':(1,'execute'),'execute-logic':(1,'execute'),'editor-preflight':(1,'view'),
  'generation-jobs':(0,'execute'),'generate':(0,'execute'),'requirements':(0,'import'),
  'feishu-requirements':(0,'import'),'file-requirements':(0,'import'),
  'referenced-requirements':(0,'import'),'attachment-requirement':(0,'import'),'archive-requirement':(0,'edit'),
@@ -89,6 +89,9 @@ class Gateway:
         basic={'studio':studio,'project':project}
         if len(tail)==2:return scope
         op=tail[2]
+        if op=='automation':
+            p.require('node','view',node='testing:'+str(task['stage']),**basic)
+            return scope
         if op=='codex-handoff':
             stage=int(query.get('stage',['-1'])[0]);node=f'testing:{stage}'
             p.require('node','view',node=node,**basic);p.require('skill','export',node=node,**basic)
@@ -98,21 +101,26 @@ class Gateway:
         if op=='reset-node':
             stage=body.get('stage')
             if type(stage) is not int or not 0<=stage<=5:raise ValueError('节点无效')
-            for i in range(stage,6):p.require('node','edit',node=f'testing:{i}',**basic)
+            from server.core.project_nodes import testing_filter_merged
+            with self.store.connection() as db:merged=testing_filter_merged(db,project)
+            for i in range(stage,6):
+                if i==3 and merged:continue
+                p.require('node','edit',node=f'testing:{i}',**basic)
             return scope
         if op=='operation-jobs':
             stage={'generate':0,'execute':1,'attribution':2,'regression':5}.get(body.get('kind'))
             if stage is None:raise ValueError('操作类型无效')
             action='execute'
-        elif op=='decisions':stage=task['stage'];action='approve'
+        elif op in ('decisions','cancel-operation','restore-cancelled'):stage=task['stage'];action='approve'
         elif op in TEST_OPERATIONS:stage,action=TEST_OPERATIONS[op]
         else:raise AccessDenied('未知测试操作，尚未配置权限')
         p.require('node','view',node=f'testing:{stage}',**basic)
         p.require('node',action,node=f'testing:{stage}',**basic)
+        if op == 'start-static-review':p.require('node','edit',node='testing:1',**basic)
         if write and op in ('requirements','feishu-requirements','file-requirements','referenced-requirements','attachment-requirement','archive-requirement'):
             permission='delete' if op=='archive-requirement' and body.get('archived') is True else 'create'
             p.require('content',permission,department='testing',**basic)
-        if stage in (1,5) and action in ('edit','execute') and op in ('execution-binding','execute-logic','regress-logic','operation-jobs') and not p.allowed('platform','manage'):
+        if stage in (1,5) and action in ('edit','execute') and op in ('execution-binding','start-static-review','execute-logic','regress-logic','operation-jobs') and not p.allowed('platform','manage'):
             from pathlib import Path
             with self.store.connection() as db:
                 connection=db.execute('SELECT repository FROM project_connections WHERE project_id=?',(project,)).fetchone()
@@ -131,6 +139,16 @@ class Gateway:
             value={**value,'nodes':[n for n in value['nodes'] if n['node'] in visible], 'tasks':value['tasks'] if testing else []}
         if 'task' in value and isinstance(value['task'],dict):value={**value,'task':self.filter_response(value['task'],scope)}
         if 'artifacts' in value and 'node_skills' in value:
+            from server.core.testing_automation import TestingAutomation
+            value={**value,'automation':{**value.get('automation',{}),'can_manage':TestingAutomation(self.store).can_manage(project)}}
+            if value.get('stage') not in testing:
+                value['automation']={**value['automation'],'detail':'当前执行节点详情不可见，请联系负责人授权'}
+            from server.core.project_nodes import testing_filter_merged
+            with self.store.connection() as db:merged=testing_filter_merged(db,project)
+            # Filing scope belongs to attribution when filter is archived. Expose
+            # only the selected scope to the filing node, not archived workspace data.
+            value={**value,'filter_merged':merged,
+                   'filing_scope':value['artifacts'].get('3') if merged and 4 in testing else None}
             value={**value,'artifacts':{k:v for k,v in value['artifacts'].items() if int(k) in testing},
                    'node_skills':{k:v for k,v in value['node_skills'].items() if int(k) in testing and p.allowed('skill','view',studio,project,node=f'testing:{k}')},
                    'events':[e for e in value['events'] if e.get('stage') in testing]}

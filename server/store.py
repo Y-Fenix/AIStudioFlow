@@ -218,12 +218,12 @@ class Store:
                           updated_at=CURRENT_TIMESTAMP''', (user_id,studio_id,role,workspace))
         return self.preferences(user_id)
 
-    def create_task(self, project_id, title):
+    def create_task(self, project_id, title, *, connection=None):
         if not isinstance(title, str) or not 1 <= len(title.strip()) <= 120:
             raise ValueError('任务名称必须为1至120个字符')
         task_id = uuid.uuid4().hex
-        with self.connection() as db:
-            db.execute('BEGIN IMMEDIATE')
+        with (nullcontext(connection) if connection is not None else self.connection()) as db:
+            if connection is None:db.execute('BEGIN IMMEDIATE')
             from server.core.project_content import require_enabled
             require_enabled(db,project_id,'testing')
             if not db.execute('SELECT id FROM projects WHERE id=?', (project_id,)).fetchone():
@@ -231,14 +231,14 @@ class Store:
             from server.core.project_nodes import read_config
             version,nodes=read_config(db,project_id,'testing')
             active=[n for n in nodes if not n['archived']]
-            if not {f'testing:{i}' for i in range(6)}.issubset({n['id'] for n in active}):
+            if not {f'testing:{i}' for i in (0,1,2,4,5)}.issubset({n['id'] for n in active}):
                 raise ValueError('测试流程缺少必需节点，请先恢复配置后创建新批次')
             from server.core.skill_library import bound_skill,legacy_skill
             skills={str(i):bound_skill(db,project_id,f'testing:{i}',legacy_skill(db,self,project_id,f'testing:{i}')) for i in range(6)}
             db.execute('INSERT INTO tasks(id,project_id,title,workflow_nodes,node_skills) VALUES(?,?,?,?,?)',
                        (task_id, project_id, title.strip(),json.dumps({'revision':version,'nodes':active},ensure_ascii=False),json.dumps(skills,ensure_ascii=False)))
             self._event(db, task_id, 'created', '创建任务')
-        return self.task(project_id, task_id)
+        return self._task(connection, project_id, task_id) if connection is not None else self.task(project_id, task_id)
 
     def tasks(self, project_id):
         """返回指定项目任务，不泄漏其它项目记录。"""
@@ -246,14 +246,16 @@ class Store:
             if not db.execute('SELECT id FROM projects WHERE id=?', (project_id,)).fetchone():
                 raise KeyError('项目不存在')
             return [dict(r) for r in db.execute(
-                'SELECT id,title,stage,status,revision FROM tasks WHERE project_id=? ORDER BY rowid DESC',
+                """SELECT t.id,t.title,t.stage,t.status,t.revision,v.id AS version_id,v.name AS version_name
+                    FROM tasks t LEFT JOIN testing_batch_versions b ON b.task_id=t.id
+                    LEFT JOIN testing_versions v ON v.id=b.version_id WHERE t.project_id=? AND NOT EXISTS(SELECT 1 FROM testing_library_deleted d WHERE d.kind='batch' AND d.resource_id=t.id) ORDER BY t.rowid DESC""",
                 (project_id,))]
 
     def _task(self, db, project_id, task_id):
         row = db.execute('SELECT * FROM tasks WHERE id=? AND project_id=?',
                          (task_id, project_id)).fetchone()
-        if row is None:
-            raise KeyError('任务不存在')
+        if row is None or db.execute("SELECT 1 FROM testing_library_deleted WHERE kind='batch' AND resource_id=?",(task_id,)).fetchone():
+            raise KeyError('任务不存在或已删除')
         return dict(row)
 
     def task(self, project_id, task_id):
@@ -264,6 +266,10 @@ class Store:
             from server.core.project_nodes import template_nodes
             task['workflow_nodes'] = json.loads(task['workflow_nodes']) or {'revision':0,'nodes':template_nodes('testing')}
             task['artifacts'] = json.loads(task['artifacts'])
+            from server.core.testing_library import version_of
+            task['version'] = version_of(db, task_id)
+            from server.core.testing_automation import read_state
+            task['automation'] = read_state(db, task_id)
             task['binding'] = json.loads(task['binding'])
             task['attribution'] = json.loads(task['attribution'])
             task['bug_target'] = json.loads(task['bug_target'])
@@ -278,6 +284,8 @@ class Store:
             task['node_skills'] = {**defaults(), **json.loads(task['node_skills'])}
             from server.core.skill_library import bound_skill
             task['node_skills'] = {stage:bound_skill(db,project_id,f'testing:{stage}',skill,task_id)
+                                   for stage,skill in task['node_skills'].items()}
+            task['node_skills'] = {stage:{**skill,'sha256':hashlib.sha256(skill['content'].encode()).hexdigest() if skill.get('content') else ''}
                                    for stage,skill in task['node_skills'].items()}
             task['events'] = [dict(r) for r in db.execute(
                 'SELECT kind,detail,created_at,stage FROM events WHERE task_id=? ORDER BY id', (task_id,))]
@@ -305,6 +313,31 @@ class Store:
     def enqueue_generation(self, project_id, task_id):
         return self.enqueue_operation(project_id, task_id, 'generate')
 
+    def start_static_review(self, project_id, task_id, binding, revision):
+        """Commit an inspected baseline and its execution job together, or neither."""
+        with self.connection() as db:
+            db.execute('BEGIN IMMEDIATE')
+            task = self._task(db, project_id, task_id)
+            if task['revision'] != revision or task['stage'] != 1 or task['status'] != 'waiting_user':
+                raise ValueError('任务已更新或阶段变化，请刷新后执行')
+            old = json.loads(task['binding'])
+            if not old or any(binding.get(k) != old.get(k) for k in ('repository', 'branch')):
+                raise ValueError('代码目录或分支变化，请先显式绑定目标分支')
+            if binding.get('execution_suite') != 'static':
+                raise ValueError('此入口只支持静态检测')
+            changed = any(old.get(k) != binding.get(k) for k in
+                          ('repository', 'project_root', 'branch', 'commit', 'code_fingerprint', 'execution_suite'))
+            active = db.execute("SELECT 1 FROM jobs WHERE task_id=? AND status IN ('queued','running')", (task_id,)).fetchone()
+            if changed:
+                if active:
+                    raise ValueError('后台操作进行中，不能更新代码基线')
+                artifacts = json.loads(task['artifacts'])
+                db.execute("UPDATE tasks SET binding=?,artifacts=?,attribution='{}',regression='{}',revision=revision+1 WHERE id=?",
+                           (json.dumps(binding, ensure_ascii=False), json.dumps({k:v for k,v in artifacts.items() if k == '0'}, ensure_ascii=False), task_id))
+                self._event(db, task_id, 'execution_binding', '更新当前指定分支代码基线；下游旧结果失效，保留用例与范围评审', 1)
+            job = self.enqueue_operation(project_id, task_id, 'execute', connection=db)
+        return {'job': job, 'task': self.task(project_id, task_id)}
+
     def operation_progress(self, job, progress):
         with self.connection() as db:
             db.execute('BEGIN IMMEDIATE')
@@ -314,15 +347,17 @@ class Store:
             db.execute("UPDATE jobs SET progress=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND status='running'",
                        (json.dumps(progress, ensure_ascii=False), job['id']))
 
-    def enqueue_operation(self, project_id, task_id, kind, *, connection=None):
+    def enqueue_operation(self, project_id, task_id, kind, *, connection=None, expected_revision=None):
         stages = {'generate': (0,), 'execute': (1,), 'attribution': (2,), 'regression': (4, 5)}
         if kind not in stages:
             raise ValueError('未知后台操作')
         with (nullcontext(connection) if connection is not None else self.connection()) as db:
             if connection is None: db.execute('BEGIN IMMEDIATE')
             task = self._task(db, project_id, task_id)
+            if expected_revision is not None and task['revision'] != expected_revision:
+                raise ValueError('任务修订已变化，未自动排队')
             if task['stage'] not in stages[kind] or task['status'] in ('cancelled', 'completed'):
-                raise ValueError('当前节点不能执行此操作')
+                raise ValueError('当前批次已进入后续节点或已结束，不能在此批次重新生成用例；请新建测试批次，历史用例会保留' if kind == 'generate' else '当前节点不能执行此操作')
             artifacts = json.loads(task['artifacts'])
             if kind == 'generate' and not db.execute('SELECT id FROM requirements WHERE task_id=? AND archived=0', (task_id,)).fetchone():
                 raise ValueError('请先导入需求')
@@ -334,6 +369,8 @@ class Store:
                 raise ValueError('尚无需要回归的Bug草稿')
             existing = db.execute("SELECT * FROM jobs WHERE task_id=? AND status IN ('queued','running')", (task_id,)).fetchone()
             if existing:
+                if json.loads(existing['context']).get('cancel_requested'):
+                    raise ValueError('后台操作正在停止，请稍候')
                 if existing['kind'] != kind:
                     raise ValueError('当前任务已有其他后台操作')
                 return dict(existing)
@@ -343,6 +380,34 @@ class Store:
             labels = {'generate':'用例生成','execute':'逻辑执行','attribution':'候选归因','regression':'逻辑回归'}
             self._event(db, task_id, 'operation_queued', labels[kind] + '已排队')
             return dict(db.execute('SELECT * FROM jobs WHERE id=?', (job_id,)).fetchone())
+
+    def cancel_operation(self, project_id, task_id, job_id, revision):
+        with self.connection() as db:
+            db.execute('BEGIN IMMEDIATE')
+            task = self._task(db, project_id, task_id)
+            if task['revision'] != revision:
+                raise ValueError('批次已变化，请刷新')
+            job = db.execute("SELECT * FROM jobs WHERE id=? AND task_id=? AND project_id=? AND status IN ('queued','running')", (job_id, task_id, project_id)).fetchone()
+            if not job:
+                raise ValueError('运行已结束，请刷新')
+            context = json.loads(job['context'])
+            context['cancel_requested'] = True
+            db.execute("UPDATE jobs SET context=?,status=?,updated_at=CURRENT_TIMESTAMP WHERE id=?", (json.dumps(context, ensure_ascii=False), 'cancelled' if job['status'] == 'queued' else 'running', job_id))
+            db.execute("UPDATE testing_automation SET enabled=0,state='paused',detail='运行已终止，全自动已暂停',revision=revision+1 WHERE task_id=? AND enabled=1", (task_id,))
+            self._event(db, task_id, 'operation_cancel_requested', '已请求终止当前后台运行，批次与已有结果保留', job['stage'])
+        return self.task(project_id, task_id)
+
+    def restore_cancelled_task(self, project_id, task_id, revision):
+        with self.connection() as db:
+            db.execute('BEGIN IMMEDIATE')
+            task = self._task(db, project_id, task_id)
+            if task['revision'] != revision or task['status'] != 'cancelled':
+                raise ValueError('批次状态已变化，请刷新')
+            if db.execute("SELECT 1 FROM jobs WHERE task_id=? AND status IN ('queued','running')", (task_id,)).fetchone():
+                raise ValueError('后台运行尚未停止，请稍候')
+            db.execute("UPDATE tasks SET status='waiting_user',revision=revision+1 WHERE id=?", (task_id,))
+            self._event(db, task_id, 'task_restored', '恢复已取消批次，保留已有数据与检查点', task['stage'])
+        return self.task(project_id, task_id)
 
     def refresh_pending_bugs(self, project_id, task_id, checks, revision):
         with self.connection() as db:
@@ -390,11 +455,16 @@ class Store:
             self._event(db, row['task_id'], 'operation_running', '开始后台操作：' + row['kind'])
             return dict(row)
 
-    def finish_generation(self, job, artifact=None, error=None):
+    def finish_generation(self, job, artifact=None, error=None, skill_snapshot=None):
         with self.connection() as db:
             db.execute('BEGIN IMMEDIATE')
             task = self._task(db, job['project_id'], job['task_id'])
-            if task['revision'] != job['revision'] or task['stage'] != job.get('stage', 0) or task['status'] in ('cancelled', 'completed'):
+            current = db.execute('SELECT status,context FROM jobs WHERE id=?', (job['id'],)).fetchone()
+            if not current or current['status'] != 'running':
+                return
+            if json.loads(current['context']).get('cancel_requested'):
+                status, error = 'cancelled', '后台运行已终止，未保存本次结果'
+            elif task['revision'] != job['revision'] or task['stage'] != job.get('stage', 0) or task['status'] in ('cancelled', 'completed'):
                 status, error = 'superseded', '需求或任务已变化，本次结果未保存'
             elif error:
                 status = 'failed'
@@ -415,14 +485,25 @@ class Store:
                     db.execute(f'UPDATE tasks SET {column}=?,revision=revision+1 WHERE id=?',
                                (json.dumps(artifact, ensure_ascii=False), task['id']))
             db.execute('UPDATE jobs SET status=?,error=?,updated_at=CURRENT_TIMESTAMP WHERE id=?', (status, error, job['id']))
+            if status == 'completed' and job.get('kind','generate') == 'generate':
+                from server.core.testing_library import capture
+                capture(db, task['id'], 'generated', skill_snapshot)
+            if status == 'completed':
+                from server.core.testing_edge_automation import record_completed
+                record_completed(self,db,job,task['revision']+1)
             self._event(db, task['id'], 'operation_' + status, error or '后台操作完成，等待人工评审', job.get('stage',0))
+            if status in ('completed','failed'):
+                from server.core.notifications import testing_event
+                testing_event(self,db,job['task_id'],5 if job.get('kind')=='regression' else job.get('stage',0),'testing-job:'+job['id'],status,artifact)
 
     def recover_generations(self):
         with self.connection() as db:
-            rows = db.execute("SELECT task_id,stage FROM jobs WHERE status='running'").fetchall()
+            rows = db.execute("SELECT id,task_id,stage,kind FROM jobs WHERE status='running'").fetchall()
             db.execute("UPDATE jobs SET status='failed',error='服务中断，请手动重试',updated_at=CURRENT_TIMESTAMP WHERE status='running'")
             for row in rows:
                 self._event(db, row['task_id'], 'generation_interrupted', '服务中断，后台操作未完成；没有自动重试',row['stage'])
+                from server.core.notifications import testing_event
+                testing_event(self,db,row['task_id'],5 if row['kind']=='regression' else row['stage'],'testing-job:'+row['id'],'interrupted')
 
     def import_requirement(self, project_id, task_id, source, content, metadata=None, expected_revision=None):
         """导入来源版本；内容变化时原子失效下游产物。"""
@@ -470,6 +551,9 @@ class Store:
         if stage is None:
             stage = db.execute('SELECT stage FROM tasks WHERE id=?',(task_id,)).fetchone()['stage']
         db.execute('INSERT INTO events(task_id,kind,detail,stage) VALUES(?,?,?,?)', (task_id, kind, detail, stage))
+        if kind in ('artifact','case_edited','confirm','version_assigned','case_copied','execution_binding'):
+            from server.core.testing_library import capture
+            capture(db, task_id, kind)
 
     def save_node_skill(self, project_id, task_id, stage, content, revision, *, name=None):
         from server.node_skills import validate
@@ -502,6 +586,8 @@ class Store:
             db.execute('UPDATE tasks SET attribution=?,revision=revision+1 WHERE id=?',
                        (json.dumps(suggestions, ensure_ascii=False), task_id))
             self._event(db, task_id, 'attribution_suggested', '生成候选归因，待人工确认；未合并提单',2)
+            from server.core.notifications import testing_event
+            testing_event(self,db,task_id,2,'testing-attribution:'+task_id+':'+str(revision+1),'completed',suggestions)
         return self.task(project_id, task_id)
 
     def save_bug_target(self, project_id, task_id, target, revision):
@@ -532,6 +618,8 @@ class Store:
             db.execute('UPDATE tasks SET regression=?,revision=revision+1 WHERE id=?',
                        (json.dumps(regression, ensure_ascii=False), task_id))
             self._event(db, task_id, 'logic_regression', '完成关联逻辑探针回归；没有修改飞书状态',5)
+            from server.core.notifications import testing_event
+            testing_event(self,db,task_id,5,'testing-regression:'+task_id+':'+str(revision+1),'completed',regression)
         return self.task(project_id, task_id)
 
     def edit_case(self, project_id, task_id, case_id, changes, revision):
@@ -561,12 +649,18 @@ class Store:
         if not isinstance(artifact, dict) or not artifact:
             raise ValueError('产物不能为空')
         with self.connection() as db:
+            db.execute('BEGIN IMMEDIATE')
             task = self._task(db, project_id, task_id)
             if expected_revision is not None and task['revision'] != expected_revision:
                 raise ValueError('需求或任务已变化，请重新生成')
-            if stage != task['stage'] or task['status'] == 'cancelled':
+            from server.core.project_nodes import testing_filter_merged
+            recover_filter = stage == 2 and task['stage'] == 3 and testing_filter_merged(db,project_id)
+            if (stage != task['stage'] and not recover_filter) or task['status'] in ('cancelled','completed'):
                 raise ValueError('节点不匹配或任务已取消')
             artifacts = json.loads(task['artifacts'])
+            if recover_filter:
+                artifacts={k:v for k,v in artifacts.items() if int(k)<2}
+                db.execute('UPDATE tasks SET stage=2 WHERE id=?',(task_id,))
             artifacts[str(stage)] = artifact
             db.execute('UPDATE tasks SET artifacts=?,revision=revision+1,status=? WHERE id=?',
                        (json.dumps(artifacts, ensure_ascii=False), 'waiting_user', task_id))
@@ -575,11 +669,17 @@ class Store:
             if stage <= 1:
                 db.execute("UPDATE tasks SET attribution='{}',regression='{}' WHERE id=?", (task_id,))
             self._event(db, task_id, 'artifact', f'节点{stage}产物登记',stage)
+            from server.core.notifications import testing_event
+            testing_event(self,db,task_id,stage,'testing-artifact:'+task_id+':'+str(stage)+':'+str(task['revision']+1),'completed',artifact,origin='recorded')
         return self.task(project_id, task_id)
 
-    def decide(self, project_id, task_id, action, revision):
+    def decide(self, project_id, task_id, action, revision, *, decision_origin='user', edge_guard=None):
+        if decision_origin not in ('user','automation'):raise ValueError('未知决策来源')
         with self.connection() as db:
             db.execute('BEGIN IMMEDIATE')
+            if edge_guard is not None:
+                from server.core.testing_edge_automation import check_edge
+                check_edge(db,edge_guard)
             task = self._task(db, project_id, task_id)
             if task['revision'] != revision:
                 raise ValueError('数据已更新，请刷新后确认')
@@ -603,8 +703,21 @@ class Store:
                 if task['stage'] == 1 and artifact.get('method') == 'static_code_review':
                     from server.static_review import validate_coverage
                     validate_coverage(artifact, json.loads(task['artifacts'])['0']['cases'])
-                if task['stage'] == 2 and not artifact.get('ready_for_review'):
-                    raise ValueError('仍有未归因的失败记录，不能进入筛选')
+                from server.core.project_nodes import testing_filter_merged
+                merged = testing_filter_merged(db,project_id)
+                if task['stage'] == 3 and merged:
+                    raise ValueError('筛选已并入归因，请返回归因保存并确认提单范围')
+                if task['stage'] == 2:
+                    if not artifact.get('ready_for_review'):
+                        raise ValueError('仍有未归因的失败记录，不能继续')
+                    if merged:
+                        from server.triage import filter_groups
+                        scope=artifact.get('filing_scope')
+                        if not isinstance(scope,dict):raise ValueError('请在归因节点保存提单范围')
+                        checked=filter_groups(artifact,[g['root_cause_id'] for g in scope.get('groups',[])],scope.get('excluded'))
+                        if checked != scope:raise ValueError('提单范围与当前归因证据不一致')
+                        artifacts=json.loads(task['artifacts']);artifacts['3']=checked
+                        db.execute('UPDATE tasks SET artifacts=? WHERE id=?',(json.dumps(artifacts,ensure_ascii=False),task_id))
                 if task['stage'] == 5 and not artifact.get('ready_for_review'):
                     raise ValueError('请先逐根因保存回归决策')
                 if task['stage'] == 4 and not artifact.get('publication_complete'):
@@ -621,7 +734,7 @@ class Store:
                         'client_verified': False, 'remote_state_changed': False,
                         'scope': '本批次没有需提单回归的根因；未运行回归，不代表全部测试通过。未决项与排除理由保留。'}
                     db.execute('UPDATE tasks SET artifacts=? WHERE id=?', (json.dumps(artifacts, ensure_ascii=False), task_id))
-                stage = min(5, task['stage'] + 1)
+                stage = 4 if task['stage']==2 and merged else min(5, task['stage'] + 1)
                 status = 'completed' if task['stage'] == 5 else 'waiting_user'
             elif action == 'cancel':
                 stage, status = task['stage'], 'cancelled'
@@ -629,11 +742,13 @@ class Store:
                 raise ValueError('未知决策')
             db.execute('UPDATE tasks SET stage=?,status=?,revision=revision+1 WHERE id=?',
                        (stage, status, task_id))
-            self._event(db, task_id, action, f'用户决策：{action}', task['stage'])
-            if action == 'confirm' and task['stage'] < 5:
+            self._event(db, task_id, action, ('自动决策：' if decision_origin == 'automation' else '用户决策：')+action, task['stage'])
+            if action == 'confirm':
                 from server.core.node_continuation import record_completion
                 studio=db.execute('SELECT studio_id FROM projects WHERE id=?',(project_id,)).fetchone()['studio_id']
                 record_completion(self,db,studio,project_id,'testing:'+str(task['stage']),revision+1,task_id)
+                from server.core.notifications import testing_event
+                testing_event(self,db,task_id,task['stage'],'testing-approval:'+task_id+':'+str(revision+1),'approved')
         return self.task(project_id, task_id)
 
     def reset_node(self, project_id, task_id, stage, revision, reason, confirmed):

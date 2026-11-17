@@ -14,6 +14,7 @@ from pathlib import Path
 from server.model import PROMPT
 from server.requirements import validate_cases
 from server.codex_stream import StreamStats
+from server.model_output import parse_object, ModelOutputError
 
 
 _diagnostic=contextvars.ContextVar('codex_diagnostic',default=None)
@@ -70,9 +71,11 @@ class CodexModel:
             except GatewayFailure as exc:
                 if not exc.retryable or attempt==3:raise
                 callback=_diagnostic.get()
+                from server.ai_models import current_selection
+                selected=current_selection() or {}
                 if callback:callback({'state':'retrying','attempt':attempt+1,'max_attempts':3,
-                    'requested_model':os.environ.get('TESTFLOW_CODEX_MODEL','gpt-6.1-sol'),
-                    'effort':os.environ.get('TESTFLOW_CODEX_EFFORT','high'),'reason':str(exc)})
+                    'requested_model':selected.get('model',os.environ.get('TESTFLOW_CODEX_MODEL','gpt-6.1-sol')),
+                    'effort':selected.get('effort',os.environ.get('TESTFLOW_CODEX_EFFORT','high')),'reason':str(exc)})
                 # No arbitrary delay: each fresh invocation already has a bounded idle deadline.
 
     def _request_json_once(self, prompt):
@@ -179,9 +182,9 @@ class CodexModel:
                 emit('output_too_large',output_bytes=output.stat().st_size)
                 raise ValueError('Codex 返回内容过大')
             try:
-                generated = json.loads(output.read_text())
-            except (ValueError, UnicodeError):
+                generated = parse_object(output.read_text())
+            except (ModelOutputError, UnicodeError):
                 emit('invalid_json',output_bytes=output.stat().st_size)
-                raise ValueError('Codex 返回内容不是合法 JSON') from None
+                raise
             emit('completed',output_bytes=output.stat().st_size,**sample())
         return generated

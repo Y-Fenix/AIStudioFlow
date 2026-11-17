@@ -1,0 +1,4 @@
+interface:
+  display_name: "TEST_Case"
+  short_description: "发现项目需求和测试资料，多选飞书链接文件后读取需求，生成无编号的单页六列用例"
+  default_prompt: "请使用 $test-case，先发现当前项目的需求、测试文档和飞书链接文件；未指定本次资料时列出文件名称供我单选或多选，选好后通过飞书 CLI 读取需求并生成精简充分、无编号的单页六列 Excel 用例，完成耦合反查与覆盖审计。"

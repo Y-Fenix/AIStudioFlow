@@ -13,6 +13,9 @@ from server.requirements import validate_cases
 from server.processes import check_cancelled,cancellation_scope,current_cancellation_check
 from server.codex_model import diagnostic_scope,current_diagnostic
 from server.node_skills import current_skill
+from departments.testing.QA_generation_recovery import QA_request_validated
+from server.model_output import ModelOutputError
+from departments.testing.QA_review_checkpoints import QA_write_checkpoint
 
 _checkpoint=contextvars.ContextVar('generation_checkpoint',default=None)
 _progress=contextvars.ContextVar('generation_progress',default=None)
@@ -106,33 +109,45 @@ def generate(client,requirements):
             cache=folder/f'{index:03}-{phase}.json' if folder else None
             with progress_lock:
                 if callback:callback(batch_progress(index,row,phase,checkpoint_reused=bool(cache and cache.exists())))
+            output=None
             if cache and cache.exists():
-                output=validate_cases(json.loads(cache.read_text()),[next(r for r in requirements if r['id']==row['id'])])
-            else:
+                try:
+                    output=validate_cases(json.loads(cache.read_text()),[next(r for r in requirements if r['id']==row['id'])])
+                except ValueError:
+                    # A damaged disposable cache is not a successful stage or a reason
+                    # to discard other validated stages. Rebuild only this phase.
+                    with progress_lock:
+                        if callback:callback(batch_progress(index,row,phase,checkpoint_reused=False))
+            if output is None:
                 def diagnostic(value):
                     with progress_lock:
                         if parent_diagnostic:parent_diagnostic(batch_progress(index,row,phase,**value))
-                with diagnostic_scope(diagnostic):
-                    output=client.request_json(request_prompt)
                 original=next(r for r in requirements if r['id']==row['id'])
-                # Audit may retain the canonical HTML span from its candidate.
-                if isinstance(output,dict) and isinstance(output.get('points'),list):
+                def validate_output(output):
+                    # Audit may retain the canonical HTML span from its candidate.
+                    if isinstance(output,dict) and isinstance(output.get('points'),list):
+                        for point in output['points']:
+                            if not isinstance(point,dict):continue
+                            quote=point.get('quote')
+                            if isinstance(quote,str) and quote not in source[0]['content'] and quote in original['content']:
+                                parser=TextParser();parser.feed(quote)
+                                rendered='\n'.join(p for p in parser.parts if p.strip())
+                                if rendered in source[0]['content']:point['quote']=rendered
+                    output=validate_cases(output,source)
                     for point in output['points']:
-                        if not isinstance(point,dict):continue
-                        quote=point.get('quote')
-                        if isinstance(quote,str) and quote not in source[0]['content'] and quote in original['content']:
-                            parser=TextParser();parser.feed(quote)
-                            rendered='\n'.join(p for p in parser.parts if p.strip())
-                            if rendered in source[0]['content']:point['quote']=rendered
-                output=validate_cases(output,source)
-                for point in output['points']:
-                    rendered=point['quote'];canonical=original_quote(rendered,original['content'])
-                    if canonical!=rendered:point['rendered_quote']=rendered
-                    point['quote']=canonical
-                # Canonical references remain exact raw-source substrings, not relaxed evidence.
-                validate_cases(output,[original])
+                        rendered=point['quote'];canonical=original_quote(rendered,original['content'])
+                        if canonical!=rendered:point['rendered_quote']=rendered
+                        point['quote']=canonical
+                    # Canonical references remain exact raw-source substrings, not relaxed evidence.
+                    return validate_cases(output,[original])
+                with diagnostic_scope(diagnostic):
+                    output=QA_request_validated(client.request_json, request_prompt, validate_output,
+                        check_cancelled=check_cancelled, diagnostic=diagnostic,
+                        output_errors=(ModelOutputError,),
+                        label=f'分批 {index+1}/{len(rows)} · '+('设计' if phase=='design' else '反向审计')+' · '+row['source'],
+                        rejected_path=cache.with_name(cache.stem+'.rejected.json') if cache else None)
                 if cache:
-                    temp=cache.with_suffix('.tmp');temp.write_text(json.dumps(output,ensure_ascii=False));temp.replace(cache)
+                    QA_write_checkpoint(cache,output)
             return output
         candidate=request('design',prompt)
         audit_prompt=prompt+'\n反向审计：从本片段原需求逐条检查明确规则、阈值两侧、状态转换、奖励/重复/恢复风险。去除无依据的需求歧义和泛泛预期，保留可观察断言。不要发明规则或用片段外缺资料逃避片段内明确测试点。返回修订后的完整同协议JSON。候选：\n'+json.dumps(candidate,ensure_ascii=False)

@@ -1,0 +1,4 @@
+interface:
+  display_name: "TEST_ServerSDK"
+  short_description: "引导选择四库检查范围与深度，追踪历史问题并输出 HTML 和黑白盒复现方案"
+  default_prompt: "使用 $test-server-sdk，先引导选择检查模式、仓库与验证深度，已有选择不重复询问；每轮核对历史问题台账，输出 HTML、Markdown 和 JSON；执行本地 JS/Swift 语法检查并审查业务链路与循环并发等专项；为 issue/risk 提供黑盒与白盒复现方案，明确未执行项和覆盖边界；默认不运行项目构建或测试。"

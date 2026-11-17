@@ -53,7 +53,8 @@ aside{top:0;left:0;height:100dvh}
 .workspace-head .skill-toolbar{flex:1;min-width:0;margin:0}
 .workspace-head>.pill{flex-shrink:0}
 .workspace-head .skill-actions button{padding:7px 11px;font-size:12px}
-@media(max-width:700px){.workspace-head{flex-wrap:wrap;gap:10px}.workspace-head .skill-toolbar{flex-wrap:nowrap}.workspace-head .skill-label{font-size:11px}.workspace-head .skill-actions button{padding:7px}}
+.workspace-head .skill-actions{flex-wrap:wrap;flex-shrink:1;min-width:0;max-width:100%}
+@media(max-width:700px){.workspace-head{flex-wrap:wrap;gap:10px}.workspace-head .skill-toolbar{flex-wrap:wrap;flex-basis:100%}.workspace-head .skill-label{font-size:11px;overflow-wrap:anywhere}.workspace-head .skill-actions{margin-left:0}.workspace-head .skill-actions button{padding:7px}}
 
 .requirement-inputs{border:0;padding:0;margin:0;min-width:0}
 .requirement-inputs:disabled{opacity:.6}
@@ -67,3 +68,81 @@ aside{top:0;left:0;height:100dvh}
 
 /* StudioFlow embeds only the existing six-node workbench. */
 body.embedded{background:var(--bg)}body.embedded>aside,body.embedded>main>header,body.embedded .banner{display:none}body.embedded>main{margin-left:0}body.embedded #app{padding:0 8px 20px}body.embedded .flow-sticky{top:0}.studio-return{color:#30543c;text-decoration:none;font-size:12px}body.embedded .project-picker{display:none}
+
+.qa-automation-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 16px;padding:14px 18px;background:var(--card,#fff);border:1px solid var(--line,#e2e7ef);border-radius:12px}.qa-automation-bar>div{display:flex;flex-direction:column;gap:4px;min-width:0}.qa-automation-bar>button{flex-shrink:0}.qa-automation-bar .small{line-height:1.6}@media(max-width:600px){.qa-automation-bar{align-items:flex-start;flex-direction:column}.qa-automation-bar>button{align-self:flex-end}}
+
+/* Testing workbench: primary actions stay in the content column. */
+.qa-workspace-panel{min-width:0}
+.qa-workspace-panel>.panelbody{padding-bottom:32px}
+.qa-workspace-panel>.footeraction{position:sticky;bottom:var(--qa-viewport-bottom,0px);z-index:10;min-height:76px;padding:14px 24px;background:var(--surface,#fff);border-radius:0 0 12px 12px;box-shadow:0 -6px 18px #15203d09}
+.qa-action-context{display:flex;flex-direction:column;gap:5px;min-width:0}
+.qa-action-context strong{font-size:12px;font-weight:600}
+.qa-action-buttons{display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0}
+.qa-action-buttons>button{white-space:nowrap;min-height:40px}
+.qa-workspace-panel .workspace-head{gap:12px}
+.qa-workspace-panel .workspace-head .skill-toolbar{gap:12px;flex-wrap:nowrap}
+.qa-workspace-panel .workspace-head .skill-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.5}
+.qa-workspace-panel .workspace-head .skill-actions{flex:0 0 auto;flex-wrap:nowrap;gap:8px}
+.qa-workspace-panel .workspace-head .skill-actions>button{white-space:nowrap;min-height:36px}
+.qa-workspace-menu{position:fixed;inset:auto;margin:0;padding:6px;width:200px;max-width:calc(100vw - 16px);max-height:calc(100dvh - 16px);overflow:auto;overscroll-behavior:contain;border:1px solid var(--line);border-radius:10px;background:var(--surface,#fff);color:var(--ink);box-shadow:0 10px 32px #080b1326}
+.qa-workspace-menu:popover-open{display:flex;flex-direction:column;gap:2px}
+.qa-workspace-menu>button{border:0;border-radius:6px;background:transparent;text-align:left;min-height:40px;padding:10px 12px;font-size:13px;color:var(--ink)}
+.qa-workspace-menu>button:hover:not(:disabled){background:var(--surface-2,#f6f8fc);color:var(--blue)}
+.qa-workspace-menu>hr{border:0;border-top:1px solid var(--line);width:100%;margin:4px 0}
+.qa-workspace-menu>hr:first-child{display:none}
+.qa-workspace-menu>.qa-danger-action{color:var(--danger,#c14b56)}
+[data-theme="forge"] .qa-workspace-menu>.qa-danger-action{color:#f3979d}
+.qa-workspace-panel button:focus-visible,.qa-workspace-menu>button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.qa-workspace-panel .review-row{scroll-margin-bottom:96px;scroll-margin-top:100px}
+@media(max-width:700px){
+ .qa-workspace-panel .workspace-head{display:grid;grid-template-columns:minmax(0,1fr) auto;padding:16px 18px;gap:12px}
+ .qa-workspace-panel .workspace-head .skill-toolbar{grid-column:1/-1;grid-row:2;flex-basis:auto;gap:8px}
+ .qa-workspace-panel .workspace-head>.pill{grid-column:2;grid-row:1}
+ .qa-workspace-panel .workspace-head .skill-label{font-size:12px;overflow-wrap:normal}
+ .qa-workspace-panel .workspace-head .skill-actions>button{padding:8px;min-height:40px}
+ .qa-workspace-panel>.footeraction{padding:12px;gap:10px;flex-wrap:wrap}
+ .qa-action-context{flex-direction:row;align-items:center;gap:8px;width:100%}
+ .qa-action-buttons{width:100%;justify-content:space-between;gap:6px}
+ .qa-action-buttons>button{font-size:12px;padding:9px 10px;min-height:44px}
+ .qa-workspace-menu>button{min-height:44px}
+ .qa-workspace-panel .review-row{scroll-margin-bottom:130px}
+}
+.qa-progress-back{margin-bottom:18px;color:var(--blue);border-color:var(--line);background:var(--surface,#fff)}
+.qa-progress-back:hover{color:var(--blue);border-color:var(--blue);background:var(--surface-2,#f4f6fa)}
+
+/* 测试任务抽屉：可辨识的操作与进行中状态。 */
+.focus-drawer .focus-drawer-head button[data-focus-close]{min-width:44px;min-height:40px;padding:8px 14px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink);font-weight:600;transition:background .16s,border-color .16s}
+.focus-drawer .focus-drawer-head button[data-focus-close]:hover{background:color-mix(in srgb,var(--blue) 8%,var(--surface));border-color:var(--blue)}
+.focus-drawer .focus-drawer-head button[data-focus-close]:focus-visible,.focus-drawer .qa-progress-stop:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+.focus-progress-stage.is-current .focus-stage-number{position:relative}
+.focus-progress-stage.is-current .focus-stage-number::after{content:"";position:absolute;inset:-5px;border:2px solid transparent;border-top-color:var(--blue);border-right-color:var(--blue);border-radius:50%;animation:qa-progress-orbit 1.15s linear infinite;pointer-events:none}
+@keyframes qa-progress-orbit{to{transform:rotate(360deg)}}
+.focus-drawer .qa-progress-stop{display:block;margin-top:16px;border:1px solid #e3b5b5;border-radius:8px;background:var(--surface);color:#a52932;padding:9px 14px;font-weight:600;cursor:pointer}
+.focus-drawer .qa-progress-stop:hover{background:#fff2f2;border-color:#b83942;color:#8e1d26}
+@media (prefers-reduced-motion:reduce){.focus-progress-stage.is-current .focus-stage-number::after{animation:none}}
+
+/* 用例页签与范围风险，保留文字含义而不单靠颜色。 */
+.focus-testing .focus-tabs [role=tab]:hover{color:var(--blue);text-shadow:0 0 .01px currentColor}
+.focus-testing .workspace-head .skill-actions>button:not(:disabled):hover,.focus-testing .workspace-head .focus-utilities>button:not(:disabled):hover{background:color-mix(in srgb,var(--blue) 9%,var(--surface));border-color:color-mix(in srgb,var(--blue) 45%,var(--line));color:var(--blue)}
+.focus-testing .workspace-head button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.qa-risk-intro{font-size:12px;line-height:1.6;color:var(--muted)}
+.qa-risk-level,.qa-risk-origin{display:inline-block;font-size:12px;font-weight:650;margin-left:8px}.qa-risk-level.is-high{color:#bd3642}.qa-risk-level.is-medium{color:#996100}.qa-risk-level.is-low{color:#14795e}.qa-risk-level.is-unknown{color:var(--muted)}.qa-risk-origin{color:var(--blue)}
+[data-focus-pane=review]:not(:has([data-review-edit][open])) .review-select,[data-focus-pane=review]:not(:has([data-review-edit][open])) .review-row>details,[data-focus-pane=review]:not(:has([data-review-edit][open])) .qa-review-manual-footer{display:none}
+[data-review-edit]>summary{color:var(--blue);cursor:pointer;font-weight:600}
+
+.focus-testing .qa-workspace-panel:has([data-focus-pane=review]:not([hidden])):not(:has([data-review-edit][open])) .footeraction [data-case-review-save]{display:none}
+
+/* 范围问题按内容与分类分行，长文本可自然换行。 */
+.focus-testing [data-section=review] .review-row .qa-review-content{display:flex;align-items:flex-start;gap:9px;min-width:0;line-height:1.65;overflow-wrap:anywhere;word-break:break-word}
+.focus-testing [data-section=review] .review-row .qa-review-content input{flex:none;margin-top:.38em}
+.focus-testing [data-section=review] .review-row .qa-review-content span{min-width:0}
+.focus-testing [data-section=review] .review-row .qa-review-meta{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;margin:7px 0 0 0}
+.focus-testing [data-section=review] .qa-risk-level,.focus-testing [data-section=review] .qa-risk-origin{margin:0}
+.focus-testing [data-section=review] .qa-risk-origin.is-source{color:#285fa4}
+.focus-testing [data-section=review] .qa-risk-origin.is-coverage{color:#8752a0}
+.focus-testing [data-section=review] .qa-risk-origin.is-ambiguity{color:#a05b21}
+.focus-testing [data-section=review] .qa-risk-origin.is-unknown{color:var(--muted)}
+.focus-testing .qa-automation-notice{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;padding:12px 16px;border:1px solid #e9c789;border-radius:9px;background:#fff7e9;color:#704600;font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+.focus-testing .qa-automation-notice>span{flex:1;min-width:0}
+.focus-testing .qa-automation-notice>button{margin-left:auto;border:0;background:transparent;color:#704600;border-radius:6px;font-size:20px;line-height:1;cursor:pointer}
+.focus-testing .qa-automation-notice>button:hover{background:#f3dfba}

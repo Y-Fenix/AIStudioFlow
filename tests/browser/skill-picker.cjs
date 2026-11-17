@@ -17,6 +17,12 @@ const {chromium}=require(process.env.STUDIOFLOW_PLAYWRIGHT_MODULE||'playwright')
   async function check(label,run){try{await run();console.log('PASS:',label)}catch(e){failures.push(label+': '+e.message);console.error('FAIL:',label,e.message)}}
   const studio=(await api('/api/studios')).items[0].id;
   const project=await api(`/api/studios/${studio}/projects`,{name:'Skill 快速选择'}),root=`/api/studios/${studio}/projects/${project.id}`;
+  const catalog=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../../server/skills/github-defaults.json'),'utf8'));
+  for(const [node,entry] of Object.entries(catalog.nodes)){
+   const detail=await api(root+'/skills?node='+encodeURIComponent(node));
+   assert.equal(detail.skill.name,entry.name,'HTTP default name for '+node);
+   assert.equal(detail.skill.content,fs.readFileSync(path.resolve(__dirname,'../..',entry.path),'utf8'),'HTTP default body for '+node);
+  }
   const batch=await api(root+'/tasks',{title:'选择目标批次'}),other=await api(root+'/tasks',{title:'隔离批次'});
   async function upload(node,name,content){const current=await api(root+'/skills?node='+encodeURIComponent(node));return api(root+'/skills?node='+encodeURIComponent(node),{id:current.id,revision:current.revision,name,content,note:'浏览器回归用规则'})}
   const content='---\nname: team-case\ndescription: 团队用例规则\n---\n# 来源核查\n必须保留需求引用与边界条件。';
@@ -26,6 +32,11 @@ const {chromium}=require(process.env.STUDIOFLOW_PLAYWRIGHT_MODULE||'playwright')
   await page.locator('[data-action="home:testing"]').click();await page.locator('.home-node[data-action="node:testing:0"]').click();
   const frame=page.frameLocator('#testing-frame');await frame.locator('.workspace-head').waitFor();
   await frame.locator('.task-selector select').selectOption(batch.id);
+  await frame.locator('body').evaluate(async(_,id)=>{while(task?.id!==id)await new Promise(r=>setTimeout(r,10));},batch.id);
+  assert.match(await frame.locator('.skill-label').innerText(),/test-scenarios/);
+  await frame.getByRole('button',{name:'Skill 工具',exact:true}).click();
+  const [defaultDownload]=await Promise.all([page.waitForEvent('download'),frame.getByRole('button',{name:'导出 Skill',exact:true}).click()]);
+  assert.equal(fs.readFileSync(await defaultDownload.path(),'utf8'),batch.node_skills['0'].content,'export uses the exact frozen default including upstream method and license');
   await check('task status is Chinese and explains the required human action',async()=>{
    assert.equal(await frame.locator('.workspace-head>.pill').innerText(),'待你操作');
    assert.match(await frame.locator('.workspace-head>.pill').getAttribute('title'),/审核|操作/);
@@ -68,6 +79,7 @@ const {chromium}=require(process.env.STUDIOFLOW_PLAYWRIGHT_MODULE||'playwright')
   await frame.getByRole('button',{name:'使用并保存',exact:true}).click();await frame.locator('[data-skill-error]').getByText(/任务已变化|重新打开/).waitFor();
   assert.equal((await api(root+'/tasks/'+batch.id)).node_skills['1'].content,'并发新版本');await page.keyboard.press('Escape');
   await page.locator('[data-action="home:product"]').click();await page.locator('.home-node[data-action="node:product:1"]').click();
+  assert.match(await page.locator('.node-skill-inline>.skill-label').innerText(),/competitor-analysis/);
   assert(await page.locator('.node-head').evaluate(e=>e.scrollWidth<=e.clientWidth),'shared toolbar fits with the new selector');
   await page.locator('[data-action="select-skill"]').click();await page.locator('[data-skill-source="product:0"]').click();await page.locator('.skill-picker-preview pre').waitFor();
   await page.getByRole('button',{name:'使用并保存',exact:true}).click();await page.locator('.modal').waitFor({state:'detached'});
@@ -77,6 +89,6 @@ const {chromium}=require(process.env.STUDIOFLOW_PLAYWRIGHT_MODULE||'playwright')
   await page.keyboard.press('Escape');await page.setViewportSize({width:390,height:844});await page.locator('[data-action="select-skill"]').click();await page.locator('[data-skill-source="product:0"]').click();await page.locator('.skill-picker-preview pre').waitFor();
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'picker does not overflow narrow viewport');await page.screenshot({path:path.join(shots,'skill-picker-mobile.png')});
   assert.deepEqual(errors,[]);assert.deepEqual(failures,[]);
-  console.log('PASS: six testing nodes and shared department picker, Chinese status, preview/save/persistence, default rules, target isolation, ESC/backdrop, late preview, source/target conflicts, empty search and mobile. No model calls.');
+  console.log('PASS: 22 GitHub defaults over HTTP, actual default labels and Markdown download; six testing nodes and shared department picker, Chinese status, preview/save/persistence, target isolation, ESC/backdrop, late preview, source/target conflicts, empty search and mobile. No model calls.');
  }finally{if(browser)await browser.close();server.kill('SIGTERM');await new Promise(r=>server.exitCode!==null?r():server.once('exit',r));fs.rmSync(folder,{recursive:true,force:true})}
 })().catch(e=>{console.error(e);process.exitCode=1});

@@ -5,11 +5,34 @@ import tempfile
 import threading
 import time
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 from server.processes import cancellation_scope, run
 
 
 class ProcessTests(unittest.TestCase):
+    def test_cleanup_permission_error_preserves_probe_failure_and_reaps_child(self):
+        processes = []
+        real_popen = subprocess.Popen
+        def start(*args, **kwargs):
+            process = real_popen(*args, **kwargs)
+            processes.append(process)
+            return process
+        def probe():
+            raise ValueError('original stream failure')
+        with patch('server.processes.subprocess.Popen', side_effect=start), \
+             patch('server.processes.os.killpg', side_effect=PermissionError(1, 'Operation not permitted')):
+            try:
+                with self.assertRaisesRegex(ValueError, 'original stream failure'):
+                    run([sys.executable, '-c', 'import time; time.sleep(30)'],
+                        capture_output=True, activity_probe=probe, idle_timeout=2)
+                self.assertIsNotNone(processes[0].poll())
+            finally:
+                for process in processes:
+                    if process.poll() is None:
+                        process.kill()
+                    process.communicate(timeout=3)
+
     def test_cancel_stops_parent_and_child_before_child_can_write(self):
         with tempfile.TemporaryDirectory() as directory:
             ready = Path(directory)/'ready'

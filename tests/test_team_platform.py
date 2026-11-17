@@ -217,7 +217,13 @@ class TeamPolicyTests(unittest.TestCase):
     def test_department_adapter_registry_validates_contract_and_duplicates(self):
         from server.core.integrations import AdapterRegistry
         registry=AdapterRegistry()
-        self.assertEqual(registry.load_modules().status()[0]['adapter'], 'not_connected')
+        states={item['department']:item['adapter'] for item in registry.load_modules().status()}
+        for department in ('product','design','development'):
+            self.assertEqual(states[department], 'registered')
+            self.assertIsNotNone(registry.get(department+':0'))
+        self.assertEqual(states['growth'], 'not_connected')
+        self.assertEqual(states['testing'], 'legacy_testing')
+        registry=AdapterRegistry()
         class Adapter:
             def execute(self,context):return {'gaps':['fake adapter for contract test']}
         registry.register('product',Adapter());self.assertIsNotNone(registry.get('product:0'))
@@ -315,16 +321,23 @@ class DepartmentManifestTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'工具适配器'):
                 load_departments(root)
 
-    def test_non_testing_departments_ship_executor_scaffolds_without_claiming_connection(self):
+    def test_departments_explicitly_opt_in_to_document_executors(self):
         from pathlib import Path
-        from server.studio_catalog import MODULE_ROOT
+        from server.studio_catalog import MODULE_ROOT, load_departments
+        manifests={item['id']:item for item in load_departments()}
         for department in ('product', 'design', 'development', 'growth'):
             with self.subTest(department=department):
                 path = MODULE_ROOT / department / 'adapter.py'
                 self.assertTrue(path.is_file())
                 source = path.read_text(encoding='utf-8')
                 self.assertIn('def create_adapter', source)
-                self.assertIn('尚未接入', source)
+                if department == 'growth':
+                    self.assertIn('尚未接入', source)
+                    self.assertEqual(manifests[department]['execution']['adapter'], 'manual')
+                else:
+                    self.assertEqual(manifests[department]['execution']['adapter'], 'adapter')
+                    for tool in manifests[department].get('tool_adapters', []):
+                        self.assertNotEqual(tool['status'], 'connected')
 
 
 class TeamAuthTests(unittest.TestCase):

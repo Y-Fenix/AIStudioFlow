@@ -1,0 +1,12 @@
+{
+  "workflow_version": "2026-11-09.1",
+  "report_contract_version": "2.1",
+  "agent_protocol": "multi-agent-v2",
+  "depth_protocol": "deep-v2",
+  "template_sha256": "d2a2d2a6ada075f0bb59c14b24ab1b22a85a7378e320b9543f5f2bff5d839e56",
+  "bug_columns_sha256": "e48b7ebd101a040a558498b6475f9054e7685a308e861912fadc4b0346c28dcc",
+  "scope_version": "2026-11-05.1",
+  "delivery_format": "gagasort-report-v1",
+  "portable_viewer_sha256": "80f6b869719636e1853824a78aecf282c3e73f07bac00948b88d4b683dbf9cb3",
+  "cross_repo_contract_version": 1
+}

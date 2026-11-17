@@ -84,13 +84,22 @@ class Administration:
         if not studio and not self.policy.allowed('platform','manage'): raise PermissionError('需要平台管理权限')
         if resource not in RESOURCES or action not in ACTIONS or effect not in ('allow','deny') or subject_type not in ('user','department'): raise ValueError('授权规则无效')
         if department and department not in DEPARTMENT_IDS: raise ValueError('部门无效')
-        if node:
+        if resource in ('workflow_node','workflow_skill'):
+            if not studio or not project or department:raise ValueError('工作流节点及 Skill 权限需要工作室、项目范围，不限定来源部门')
+            if node:
+                from server.core.node_blocks.flow_nodes import validate_coordinate
+                validate_coordinate(self.store,project,node,current=True)
+        elif node:
             d,_,_=node_definition(node,self.store,project)
             if department!=d['id'] or not project: raise ValueError('节点授权需要明确项目与对应部门')
         if resource=='node' and action in ('create','reorder') and (not department or node):
             raise ValueError('节点新增与排序需限定部门范围，不能限定单个节点')
         if resource=='node' and action=='delete' and not department:
             raise ValueError('节点删除需限定部门范围')
+        if resource=='block' and (not studio or not department or project or node):
+            raise ValueError('共享积木模板必须限定工作室与部门，不能限定项目或节点')
+        if resource=='workflow' and (not studio or not project or department or node):
+            raise ValueError('自定义流权限必须限定工作室与项目')
         if resource=='gm' and (action!='execute' or not node):
             raise ValueError('GM MCP 仅可授权到明确项目、部门和节点的只读执行权限')
         if project and not studio: raise ValueError('项目范围需要明确工作室')

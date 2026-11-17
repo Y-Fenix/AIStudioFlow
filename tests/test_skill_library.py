@@ -82,7 +82,7 @@ class SkillLibraryTests(unittest.TestCase):
 
     def test_active_job_blocks_delete_and_new_execution_rejects_missing_skill(self):
         item=self.upload()
-        with self.store.connection() as db:db.execute("INSERT INTO department_jobs VALUES('active',?,?,'product:0','local',0,'queued',NULL,NULL,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",(self.studio,self.project))
+        with self.store.connection() as db:db.execute("INSERT INTO department_jobs (id,studio_id,project_id,node,actor,revision,status,result,error,created_at,updated_at) VALUES('active',?,?,'product:0','local',0,'queued',NULL,NULL,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",(self.studio,self.project))
         with self.assertRaisesRegex(ValueError,'任务'):self.remove(item)
         with self.store.connection() as db:db.execute("DELETE FROM department_jobs WHERE id='active'")
         self.remove(item)
@@ -110,10 +110,10 @@ class SkillLibraryTests(unittest.TestCase):
         config['nodes'].pop(0)
         service.save(self.studio,self.project,'product',config)
         with self.assertRaisesRegex(ValueError,'归档'):self.upload()
-        with self.store.connection() as db:db.execute("INSERT INTO department_jobs VALUES('active',?,?,'design:0','local',0,'running',NULL,NULL,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",(self.studio,self.project))
+        with self.store.connection() as db:db.execute("INSERT INTO department_jobs (id,studio_id,project_id,node,actor,revision,status,result,error,created_at,updated_at) VALUES('active',?,?,'design:0','local',0,'running',NULL,NULL,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",(self.studio,self.project))
         with self.assertRaisesRegex(ValueError,'任务'):self.upload(node='design:0')
     def test_node_toolbar_import_cannot_bypass_active_job_guard(self):
-        with self.store.connection() as db:db.execute("INSERT INTO department_jobs VALUES('active',?,?,'product:0','local',0,'running',NULL,NULL,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",(self.studio,self.project))
+        with self.store.connection() as db:db.execute("INSERT INTO department_jobs (id,studio_id,project_id,node,actor,revision,status,result,error,created_at,updated_at) VALUES('active',?,?,'product:0','local',0,'running',NULL,NULL,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",(self.studio,self.project))
         with self.assertRaisesRegex(ValueError,'任务'):
             Workspaces(self.store).save(self.studio,self.project,'product:0',{'revision':0,'skill':'不能旁路替换'})
     def test_trashing_and_restoring_default_does_not_invent_uploader_or_upload_time(self):

@@ -15,7 +15,7 @@ const {chromium}=require(process.env.STUDIOFLOW_PLAYWRIGHT_MODULE||'playwright')
   async function api(url,body){const r=await page.request[body===undefined?'get':'post'](base+url,body===undefined?{}:{data:body});assert(r.ok(),await r.text());return r.json()}
   const studio=(await api('/api/studios')).items[0].id,project=await api(`/api/studios/${studio}/projects`,{name:'节点真实界面验证'}),root=`/api/studios/${studio}/projects/${project.id}`;
   await api(root+'/enter',{});await api('/api/me/preferences',{active_studio_id:studio,role:'product'});await page.goto(base);
-  for(const department of ['product','design','development','testing','growth']){
+  for(const department of ['product','design','development','testing']){
    console.log('Checking department:',department);
    await page.locator(`[data-action="home:${department}"]`).click();await page.locator('[data-action="manage-nodes"]').click();
    await page.locator('.node-manager-add summary').click();
@@ -44,6 +44,6 @@ const {chromium}=require(process.env.STUDIOFLOW_PLAYWRIGHT_MODULE||'playwright')
   await page.setViewportSize({width:390,height:844});await page.locator('[data-action="manage-nodes"]').click();
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'mobile does not overflow');
   assert.deepEqual(errors,[]);
-  console.log('PASS: five departments add/reorder/save/manual-workspace/archive/restore, stable evidence, refresh, ESC, mobile and escaped custom labels. Temporary database; no AI or Feishu calls.');
+  console.log('PASS: four departments add/reorder/save/manual-workspace/archive/restore, stable evidence, refresh, ESC, mobile and escaped custom labels. Temporary database; no AI or Feishu calls.');
  }finally{if(browser)await browser.close();server.kill('SIGTERM');await new Promise(r=>server.exitCode!==null?r():server.once('exit',r));fs.rmSync(folder,{recursive:true,force:true})}
 })().catch(e=>{console.error(e);process.exitCode=1});

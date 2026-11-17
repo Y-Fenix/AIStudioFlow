@@ -50,13 +50,19 @@ class Authentication:
         if mode not in ('local','team','password') or not isinstance(tenants,list) or not all(isinstance(x,str) and len(x)<200 for x in tenants):raise ValueError('认证配置格式无效')
         parsed=urlsplit(base)
         if base and (parsed.scheme not in ('http','https') or not parsed.hostname or parsed.path not in ('','/') or parsed.query or parsed.fragment or parsed.username):raise ValueError('对外地址必须是完整站点地址，不带路径或账号')
-        if parsed.scheme=='http' and parsed.hostname not in ('localhost','127.0.0.1','::1'):raise ValueError('团队访问必须配置 HTTPS；可由 Mac 上的反向代理提供')
+        allow_lan=value.get('allow_lan_http',False)
+        if type(allow_lan) is not bool:raise ValueError('局域网 HTTP 开关格式错误')
+        if allow_lan and mode!='password':raise ValueError('局域网 HTTP 仅可配合本地账号密码登录')
+        if parsed.scheme=='http' and parsed.hostname not in ('localhost','127.0.0.1','::1'):
+            from server.core.notification_settings import site_url
+            if not allow_lan:raise ValueError('团队访问需 HTTPS，或显式开启公司局域网 HTTP')
+            site_url(base)
         if mode=='team':
             if not client or not secret or not base:raise ValueError('团队模式需要飞书应用 ID、Secret 和固定对外地址')
             if value.get('allow_all_tenants') is not True and not tenants:raise ValueError('请配置允许的企业，或显式允许所有企业登记')
             with self.store.connection() as db:
                 if not db.execute("SELECT 1 FROM users WHERE tenant_key!='local' AND global_role='project_lead' AND status='active'").fetchone():raise ValueError('先用飞书登录登记账号，再由本机负责人任命平台负责人，最后启用团队模式')
-        data={'mode':mode,'public_url':base,'registration_open':value.get('registration_open',True) is True}
+        data={'mode':mode,'public_url':base,'registration_open':value.get('registration_open',True) is True,'allow_lan_http':allow_lan}
         if mode!='password':data.update({'client_id':client,'client_secret':secret,'allowed_tenants':list(dict.fromkeys(tenants)), 'allow_all_tenants':value.get('allow_all_tenants') is True})
         self.path.parent.mkdir(parents=True,exist_ok=True)
         temp=self.path.with_name('.team-auth-'+uuid.uuid4().hex+'.tmp')

@@ -93,15 +93,14 @@ class StudioTests(unittest.TestCase):
         import re
         from server.studio_catalog import DEPARTMENTS, default_skill
         for department in DEPARTMENTS:
-            if department['id'] == 'testing':
-                continue  # User-owned local testing Skills remain verbatim.
             for index in range(len(department['nodes'])):
                 with self.subTest(department=department['id'], index=index):
                     skill = default_skill(f"{department['id']}:{index}")
                     name = re.search(r'^name: (.+)$', skill['content'], re.MULTILINE).group(1)
                     self.assertRegex(name, r'^[a-z0-9]+(?:-[a-z0-9]+)*$')
                     self.assertEqual(name, f"studioflow-{department['id']}-{index+1}")
-                    self.assertEqual(skill['name'], name)
+                    self.assertTrue(skill['upstream_sources'])
+                    self.assertIn('## 上游来源与许可证', skill['content'])
 
     def test_visits_and_preferences_restore_project_in_each_studio(self):
         second=self.store.create_studio('另一个工作室')['id']

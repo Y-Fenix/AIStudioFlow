@@ -1,5 +1,6 @@
 """Authorization for legacy QA jobs under the actor who enqueued the work."""
 from pathlib import Path
+import json
 
 from server.core.permissions import AccessDenied, Policy
 
@@ -21,8 +22,13 @@ def authorize_testing_job(store, job):
     if stage and not policy.allowed('platform', 'manage', actor=actor):
         with store.connection() as db:
             connection = db.execute('SELECT repository FROM project_connections WHERE project_id=?', (job['project_id'],)).fetchone()
-        binding = store.task(job['project_id'], job['task_id']).get('binding', {})
+            task = db.execute('SELECT binding FROM tasks WHERE id=? AND project_id=?',
+                              (job['task_id'], job['project_id'])).fetchone()
+        if task is None:
+            raise AccessDenied('测试任务不存在或不属于此项目')
+        binding = json.loads(task['binding'])
         repository = binding.get('repository')
         if not connection or not connection['repository'] or not repository or (
                 Path(repository).expanduser().resolve() != Path(connection['repository']).expanduser().resolve()):
             raise AccessDenied('代码目录授权已变化，请由负责人核对项目接入并重新绑定')
+    return stage

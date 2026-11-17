@@ -74,10 +74,17 @@ class PublicationLedger:
             db.execute('''UPDATE publications SET status=?,record_id=?,detail=?,updated_at=CURRENT_TIMESTAMP
                 WHERE identity=?''', ('published' if valid else 'uncertain', ids[0] if known_record else None,
                 '创建接口返回唯一记录ID' if valid else '未取得完整成功响应，需只读核对；禁止自动重试', identity))
+            from server.core.notifications import testing_event
+            testing_event(self.store,db,row['task_id'],4,'publication:'+identity+':'+attempt,'completed' if valid else 'failed',
+                          {'notification_summary':'一条 Bug 创建接口返回唯一记录 ID；请在平台核对发布台账。' if valid else 'Bug 发布结果不确定，需核对飞书记录；禁止自动重试创建。'},origin='publication')
 
     def recover_interrupted(self):
         with self.store.connection() as db:
+            rows=db.execute("SELECT identity,task_id,attempt FROM publications WHERE status='sending'").fetchall()
             db.execute("UPDATE publications SET status='uncertain',detail='服务中断，需核对远端记录；禁止自动重试',updated_at=CURRENT_TIMESTAMP WHERE status='sending'")
+            from server.core.notifications import testing_event
+            for row in rows:testing_event(self.store,db,row['task_id'],4,'publication:'+row['identity']+':'+str(row['attempt']),'interrupted',
+                {'notification_summary':'Bug 发布时服务中断，远端结果不确定；请核对，禁止自动重试创建。'},origin='publication')
 
     def reconciliation_request(self, project, task_id, identity):
         with self.store.connection() as db:
@@ -114,3 +121,6 @@ class PublicationLedger:
                 raise ValueError('该记录已经关联其他根因')
             db.execute("UPDATE publications SET status='reconciled',record_id=?,detail=?,updated_at=CURRENT_TIMESTAMP WHERE identity=?",
                        (check['record_id'], '用户指定记录；只读核对提交字段一致，'+check['checked_at'], identity))
+            from server.core.notifications import testing_event
+            testing_event(self.store,db,task_id,4,'publication-reconciled:'+identity,'completed',
+                          {'notification_summary':'已只读核对一条 Bug 远端记录与提交内容一致。'},origin='publication')

@@ -1,0 +1,772 @@
+{
+  "schema_version": 1,
+  "verified_at": "2026-10-22T06:09:20Z",
+  "selection": "Task match first; source repositories have >=10,000 stars at verification. Stars are not skill-level evaluations.",
+  "sources": {
+    "pm/market-sizing": {
+      "repository": "phuryn/pm-skills",
+      "skill": "market-sizing",
+      "path": "pm-market-research/skills/market-sizing/SKILL.md",
+      "commit": "07b34f64ee828df08953f505b7f747aef85ae7c6",
+      "stars": 27283,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/phuryn/pm-skills/blob/07b34f64ee828df08953f505b7f747aef85ae7c6/pm-market-research/skills/market-sizing/SKILL.md",
+      "snapshot": "third_party/skills/phuryn/pm-skills/market-sizing/UPSTREAM.md",
+      "sha256": "96d1250ba0ab7e5b64c9be8278f63f9661b510237e423b42ef70ab914184faf8",
+      "license_path": "third_party/skills/phuryn/pm-skills/LICENSE"
+    },
+    "pm/competitor-analysis": {
+      "repository": "phuryn/pm-skills",
+      "skill": "competitor-analysis",
+      "path": "pm-market-research/skills/competitor-analysis/SKILL.md",
+      "commit": "07b34f64ee828df08953f505b7f747aef85ae7c6",
+      "stars": 27283,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/phuryn/pm-skills/blob/07b34f64ee828df08953f505b7f747aef85ae7c6/pm-market-research/skills/competitor-analysis/SKILL.md",
+      "snapshot": "third_party/skills/phuryn/pm-skills/competitor-analysis/UPSTREAM.md",
+      "sha256": "8e627fc7fba96f223ad9f8fd23c6033a429cc28f9e9ce2d672854c6851810c2b",
+      "license_path": "third_party/skills/phuryn/pm-skills/LICENSE"
+    },
+    "pm/monetization-strategy": {
+      "repository": "phuryn/pm-skills",
+      "skill": "monetization-strategy",
+      "path": "pm-product-strategy/skills/monetization-strategy/SKILL.md",
+      "commit": "07b34f64ee828df08953f505b7f747aef85ae7c6",
+      "stars": 27283,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/phuryn/pm-skills/blob/07b34f64ee828df08953f505b7f747aef85ae7c6/pm-product-strategy/skills/monetization-strategy/SKILL.md",
+      "snapshot": "third_party/skills/phuryn/pm-skills/monetization-strategy/UPSTREAM.md",
+      "sha256": "2306d3c987e9572258fa1327a864049965dda3e4e873093482c6b671d686eea5",
+      "license_path": "third_party/skills/phuryn/pm-skills/LICENSE"
+    },
+    "pm/create-prd": {
+      "repository": "phuryn/pm-skills",
+      "skill": "create-prd",
+      "path": "pm-execution/skills/create-prd/SKILL.md",
+      "commit": "07b34f64ee828df08953f505b7f747aef85ae7c6",
+      "stars": 27283,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/phuryn/pm-skills/blob/07b34f64ee828df08953f505b7f747aef85ae7c6/pm-execution/skills/create-prd/SKILL.md",
+      "snapshot": "third_party/skills/phuryn/pm-skills/create-prd/UPSTREAM.md",
+      "sha256": "e3aa10a437ed7f748a957bd5d1eb06d8fa3f56dc728dcb93ce484387ecc3fa13",
+      "license_path": "third_party/skills/phuryn/pm-skills/LICENSE"
+    },
+    "pm/test-scenarios": {
+      "repository": "phuryn/pm-skills",
+      "skill": "test-scenarios",
+      "path": "pm-execution/skills/test-scenarios/SKILL.md",
+      "commit": "07b34f64ee828df08953f505b7f747aef85ae7c6",
+      "stars": 27283,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/phuryn/pm-skills/blob/07b34f64ee828df08953f505b7f747aef85ae7c6/pm-execution/skills/test-scenarios/SKILL.md",
+      "snapshot": "third_party/skills/phuryn/pm-skills/test-scenarios/UPSTREAM.md",
+      "sha256": "2dc10ebb6359604275f26234d3c66c9ccc952e501ad5b685c23a5c0f34f634d4",
+      "license_path": "third_party/skills/phuryn/pm-skills/LICENSE"
+    },
+    "pm/intended-vs-implemented": {
+      "repository": "phuryn/pm-skills",
+      "skill": "intended-vs-implemented",
+      "path": "pm-ai-shipping/skills/intended-vs-implemented/SKILL.md",
+      "commit": "07b34f64ee828df08953f505b7f747aef85ae7c6",
+      "stars": 27283,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/phuryn/pm-skills/blob/07b34f64ee828df08953f505b7f747aef85ae7c6/pm-ai-shipping/skills/intended-vs-implemented/SKILL.md",
+      "snapshot": "third_party/skills/phuryn/pm-skills/intended-vs-implemented/UPSTREAM.md",
+      "sha256": "5d88977487be2b11e872deba524dbb0effe252b367d95ad9463f1058b8c50158",
+      "license_path": "third_party/skills/phuryn/pm-skills/LICENSE"
+    },
+    "pm/ab-test-analysis": {
+      "repository": "phuryn/pm-skills",
+      "skill": "ab-test-analysis",
+      "path": "pm-data-analytics/skills/ab-test-analysis/SKILL.md",
+      "commit": "07b34f64ee828df08953f505b7f747aef85ae7c6",
+      "stars": 27283,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/phuryn/pm-skills/blob/07b34f64ee828df08953f505b7f747aef85ae7c6/pm-data-analytics/skills/ab-test-analysis/SKILL.md",
+      "snapshot": "third_party/skills/phuryn/pm-skills/ab-test-analysis/UPSTREAM.md",
+      "sha256": "9956966671d6d19d42acb6150307fd7954d16d1d150e8fd8277f99eec9a949e0",
+      "license_path": "third_party/skills/phuryn/pm-skills/LICENSE"
+    },
+    "game/reverse-document": {
+      "repository": "Donchitos/Claude-Code-Game-Studios",
+      "skill": "reverse-document",
+      "path": ".claude/skills/reverse-document/SKILL.md",
+      "commit": "05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418",
+      "stars": 27073,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/Donchitos/Claude-Code-Game-Studios/blob/05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418/.claude/skills/reverse-document/SKILL.md",
+      "snapshot": "third_party/skills/Donchitos/Claude-Code-Game-Studios/reverse-document/UPSTREAM.md",
+      "sha256": "c498c673b8f1b8d5634e33839b6117b17a827c2f41207acb115eb276f716189a",
+      "license_path": "third_party/skills/Donchitos/Claude-Code-Game-Studios/LICENSE"
+    },
+    "game/quick-design": {
+      "repository": "Donchitos/Claude-Code-Game-Studios",
+      "skill": "quick-design",
+      "path": ".claude/skills/quick-design/SKILL.md",
+      "commit": "05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418",
+      "stars": 27073,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/Donchitos/Claude-Code-Game-Studios/blob/05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418/.claude/skills/quick-design/SKILL.md",
+      "snapshot": "third_party/skills/Donchitos/Claude-Code-Game-Studios/quick-design/UPSTREAM.md",
+      "sha256": "32a4521f5290f459b84cf3500f86487d63b03d192281c392b7a023dcede03fb3",
+      "license_path": "third_party/skills/Donchitos/Claude-Code-Game-Studios/LICENSE"
+    },
+    "game/art-bible": {
+      "repository": "Donchitos/Claude-Code-Game-Studios",
+      "skill": "art-bible",
+      "path": ".claude/skills/art-bible/SKILL.md",
+      "commit": "05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418",
+      "stars": 27073,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/Donchitos/Claude-Code-Game-Studios/blob/05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418/.claude/skills/art-bible/SKILL.md",
+      "snapshot": "third_party/skills/Donchitos/Claude-Code-Game-Studios/art-bible/UPSTREAM.md",
+      "sha256": "7873271f9e19fd6f126f00770c3861a2001afa492350f9232e3609fb4d61518a",
+      "license_path": "third_party/skills/Donchitos/Claude-Code-Game-Studios/LICENSE"
+    },
+    "game/asset-spec": {
+      "repository": "Donchitos/Claude-Code-Game-Studios",
+      "skill": "asset-spec",
+      "path": ".claude/skills/asset-spec/SKILL.md",
+      "commit": "05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418",
+      "stars": 27073,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/Donchitos/Claude-Code-Game-Studios/blob/05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418/.claude/skills/asset-spec/SKILL.md",
+      "snapshot": "third_party/skills/Donchitos/Claude-Code-Game-Studios/asset-spec/UPSTREAM.md",
+      "sha256": "8e9126653dcf25bdd2e197ee9df6587e3ffd7ee67de7103087cf8971c59fe025",
+      "license_path": "third_party/skills/Donchitos/Claude-Code-Game-Studios/LICENSE"
+    },
+    "game/asset-audit": {
+      "repository": "Donchitos/Claude-Code-Game-Studios",
+      "skill": "asset-audit",
+      "path": ".claude/skills/asset-audit/SKILL.md",
+      "commit": "05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418",
+      "stars": 27073,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/Donchitos/Claude-Code-Game-Studios/blob/05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418/.claude/skills/asset-audit/SKILL.md",
+      "snapshot": "third_party/skills/Donchitos/Claude-Code-Game-Studios/asset-audit/UPSTREAM.md",
+      "sha256": "9aaa056c533cd0d61af1da5332fd26065fbfa6937db4bd117ac0692f8c65a3f4",
+      "license_path": "third_party/skills/Donchitos/Claude-Code-Game-Studios/LICENSE"
+    },
+    "game/architecture-decision": {
+      "repository": "Donchitos/Claude-Code-Game-Studios",
+      "skill": "architecture-decision",
+      "path": ".claude/skills/architecture-decision/SKILL.md",
+      "commit": "05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418",
+      "stars": 27073,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/Donchitos/Claude-Code-Game-Studios/blob/05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418/.claude/skills/architecture-decision/SKILL.md",
+      "snapshot": "third_party/skills/Donchitos/Claude-Code-Game-Studios/architecture-decision/UPSTREAM.md",
+      "sha256": "b550883ebd9973ad6534c2984a77fdb6229f47eb8d2b2c31e7501d8a89f2cdf5",
+      "license_path": "third_party/skills/Donchitos/Claude-Code-Game-Studios/LICENSE"
+    },
+    "game/architecture-decision-method": {
+      "repository": "Donchitos/Claude-Code-Game-Studios",
+      "skill": "architecture-decision-method",
+      "path": ".claude/skills/architecture-decision/references/4-decide.md",
+      "commit": "05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418",
+      "stars": 27073,
+      "verified_at": "2026-10-22T06:25:29+00:00",
+      "license": "MIT",
+      "url": "https://github.com/Donchitos/Claude-Code-Game-Studios/blob/05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418/.claude/skills/architecture-decision/references/4-decide.md",
+      "snapshot": "third_party/skills/Donchitos/Claude-Code-Game-Studios/architecture-decision-method/UPSTREAM.md",
+      "sha256": "14a595f2efc8c0fdbbd9dbf6c0912250b817073db2a1de17ebf1c831d0822f8a",
+      "license_path": "third_party/skills/Donchitos/Claude-Code-Game-Studios/LICENSE",
+      "stars_verified_at": "2026-10-22T06:09:20Z"
+    },
+    "game/architecture-decision-template": {
+      "repository": "Donchitos/Claude-Code-Game-Studios",
+      "skill": "architecture-decision-template",
+      "path": ".claude/skills/architecture-decision/references/5-generate.md",
+      "commit": "05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418",
+      "stars": 27073,
+      "verified_at": "2026-10-22T06:25:29+00:00",
+      "license": "MIT",
+      "url": "https://github.com/Donchitos/Claude-Code-Game-Studios/blob/05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418/.claude/skills/architecture-decision/references/5-generate.md",
+      "snapshot": "third_party/skills/Donchitos/Claude-Code-Game-Studios/architecture-decision-template/UPSTREAM.md",
+      "sha256": "c6862e0d8ce98ad9b0d1c2287f685019d5cb47cb808456d1d164c6dd4deb3138",
+      "license_path": "third_party/skills/Donchitos/Claude-Code-Game-Studios/LICENSE",
+      "stars_verified_at": "2026-10-22T06:09:20Z"
+    },
+    "game/bug-triage": {
+      "repository": "Donchitos/Claude-Code-Game-Studios",
+      "skill": "bug-triage",
+      "path": ".claude/skills/bug-triage/SKILL.md",
+      "commit": "05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418",
+      "stars": 27073,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/Donchitos/Claude-Code-Game-Studios/blob/05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418/.claude/skills/bug-triage/SKILL.md",
+      "snapshot": "third_party/skills/Donchitos/Claude-Code-Game-Studios/bug-triage/UPSTREAM.md",
+      "sha256": "818f27203a1adfe2f5a6bc3a351a2673d5297d2fd3e69d773c228c98c8a83b01",
+      "license_path": "third_party/skills/Donchitos/Claude-Code-Game-Studios/LICENSE"
+    },
+    "game/bug-report": {
+      "repository": "Donchitos/Claude-Code-Game-Studios",
+      "skill": "bug-report",
+      "path": ".claude/skills/bug-report/SKILL.md",
+      "commit": "05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418",
+      "stars": 27073,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/Donchitos/Claude-Code-Game-Studios/blob/05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418/.claude/skills/bug-report/SKILL.md",
+      "snapshot": "third_party/skills/Donchitos/Claude-Code-Game-Studios/bug-report/UPSTREAM.md",
+      "sha256": "cf643bf40ba2bfd45d580ecb5dfadb186b779b1152ca650962418bbcb3c8d783",
+      "license_path": "third_party/skills/Donchitos/Claude-Code-Game-Studios/LICENSE"
+    },
+    "game/regression-suite": {
+      "repository": "Donchitos/Claude-Code-Game-Studios",
+      "skill": "regression-suite",
+      "path": ".claude/skills/regression-suite/SKILL.md",
+      "commit": "05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418",
+      "stars": 27073,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/Donchitos/Claude-Code-Game-Studios/blob/05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418/.claude/skills/regression-suite/SKILL.md",
+      "snapshot": "third_party/skills/Donchitos/Claude-Code-Game-Studios/regression-suite/UPSTREAM.md",
+      "sha256": "65b91a43cfc319b8f369d31f78686549a84cbfaa32ba2c125b9b3abce7f29717",
+      "license_path": "third_party/skills/Donchitos/Claude-Code-Game-Studios/LICENSE"
+    },
+    "game/launch-checklist": {
+      "repository": "Donchitos/Claude-Code-Game-Studios",
+      "skill": "launch-checklist",
+      "path": ".claude/skills/launch-checklist/SKILL.md",
+      "commit": "05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418",
+      "stars": 27073,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/Donchitos/Claude-Code-Game-Studios/blob/05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418/.claude/skills/launch-checklist/SKILL.md",
+      "snapshot": "third_party/skills/Donchitos/Claude-Code-Game-Studios/launch-checklist/UPSTREAM.md",
+      "sha256": "ce8813df00b1b1f513c935fa6fcefd560c293e96fee02040a7705063a6afa7d2",
+      "license_path": "third_party/skills/Donchitos/Claude-Code-Game-Studios/LICENSE"
+    },
+    "game/release-checklist": {
+      "repository": "Donchitos/Claude-Code-Game-Studios",
+      "skill": "release-checklist",
+      "path": ".claude/skills/release-checklist/SKILL.md",
+      "commit": "05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418",
+      "stars": 27073,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/Donchitos/Claude-Code-Game-Studios/blob/05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418/.claude/skills/release-checklist/SKILL.md",
+      "snapshot": "third_party/skills/Donchitos/Claude-Code-Game-Studios/release-checklist/UPSTREAM.md",
+      "sha256": "a7bd13a309e683c5a2b8a39f18df753d423d9d0b02ccf384802e3882cac4cfd5",
+      "license_path": "third_party/skills/Donchitos/Claude-Code-Game-Studios/LICENSE"
+    },
+    "ux/ui-ux-pro-max": {
+      "repository": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "skill": "ui-ux-pro-max",
+      "path": ".claude/skills/ui-ux-pro-max/SKILL.md",
+      "commit": "623a9a9037d006ea727f8213f084d02a6b6f11b5",
+      "stars": 138600,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill/blob/623a9a9037d006ea727f8213f084d02a6b6f11b5/.claude/skills/ui-ux-pro-max/SKILL.md",
+      "snapshot": "third_party/skills/nextlevelbuilder/ui-ux-pro-max-skill/ui-ux-pro-max/UPSTREAM.md",
+      "sha256": "ea087c341bfb5b23195c7302027268ede86da802554c18a5c4896a6017b439f9",
+      "license_path": "third_party/skills/nextlevelbuilder/ui-ux-pro-max-skill/LICENSE"
+    },
+    "super/writing-plans": {
+      "repository": "obra/superpowers",
+      "skill": "writing-plans",
+      "path": "skills/writing-plans/SKILL.md",
+      "commit": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+      "stars": 303256,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/obra/superpowers/blob/2ce8aa15d05bd57213e6f746f953aafb7ded7a8b/skills/writing-plans/SKILL.md",
+      "snapshot": "third_party/skills/obra/superpowers/writing-plans/UPSTREAM.md",
+      "sha256": "a6c67c1900064347c2a329990dd3c555657c51c3ec53b259a08aa01a2c26139a",
+      "license_path": "third_party/skills/obra/superpowers/LICENSE"
+    },
+    "super/test-driven-development": {
+      "repository": "obra/superpowers",
+      "skill": "test-driven-development",
+      "path": "skills/test-driven-development/SKILL.md",
+      "commit": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+      "stars": 303256,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/obra/superpowers/blob/2ce8aa15d05bd57213e6f746f953aafb7ded7a8b/skills/test-driven-development/SKILL.md",
+      "snapshot": "third_party/skills/obra/superpowers/test-driven-development/UPSTREAM.md",
+      "sha256": "64b03fce4aee5a97a93160cea8111f3ba13a17b7c001db4bd5836d67fd10705d",
+      "license_path": "third_party/skills/obra/superpowers/LICENSE"
+    },
+    "super/systematic-debugging": {
+      "repository": "obra/superpowers",
+      "skill": "systematic-debugging",
+      "path": "skills/systematic-debugging/SKILL.md",
+      "commit": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+      "stars": 303256,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/obra/superpowers/blob/2ce8aa15d05bd57213e6f746f953aafb7ded7a8b/skills/systematic-debugging/SKILL.md",
+      "snapshot": "third_party/skills/obra/superpowers/systematic-debugging/UPSTREAM.md",
+      "sha256": "51c6435d98c83c42c96ba7c35725a0b2c376cd487fb1a4e6bd0ddbe7e33ef202",
+      "license_path": "third_party/skills/obra/superpowers/LICENSE"
+    },
+    "super/verification-before-completion": {
+      "repository": "obra/superpowers",
+      "skill": "verification-before-completion",
+      "path": "skills/verification-before-completion/SKILL.md",
+      "commit": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+      "stars": 303256,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/obra/superpowers/blob/2ce8aa15d05bd57213e6f746f953aafb7ded7a8b/skills/verification-before-completion/SKILL.md",
+      "snapshot": "third_party/skills/obra/superpowers/verification-before-completion/UPSTREAM.md",
+      "sha256": "2befe7fc55bcadaa3d97dd9e8efeb633d2561c0ebe74c5a8b17c4d9e7e4520b3",
+      "license_path": "third_party/skills/obra/superpowers/LICENSE"
+    },
+    "agents/code-review-excellence": {
+      "repository": "wshobson/agents",
+      "skill": "code-review-excellence",
+      "path": "plugins/developer-essentials/skills/code-review-excellence/SKILL.md",
+      "commit": "0874a27b17a22e2b7c2e2bcd725768e0803cad06",
+      "stars": 41502,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/wshobson/agents/blob/0874a27b17a22e2b7c2e2bcd725768e0803cad06/plugins/developer-essentials/skills/code-review-excellence/SKILL.md",
+      "snapshot": "third_party/skills/wshobson/agents/code-review-excellence/UPSTREAM.md",
+      "sha256": "1e264e04e7d2db9f4de3d34576f444650233752ba79396ea96c1f8dc8df486ea",
+      "license_path": "third_party/skills/wshobson/agents/LICENSE"
+    },
+    "marketing/ad-creative": {
+      "repository": "coreyhaines31/marketingskills",
+      "skill": "ad-creative",
+      "path": "skills/ad-creative/SKILL.md",
+      "commit": "e85f3cbc2e4a79bf33b2a12e9bdd9087d414735b",
+      "stars": 55873,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/coreyhaines31/marketingskills/blob/e85f3cbc2e4a79bf33b2a12e9bdd9087d414735b/skills/ad-creative/SKILL.md",
+      "snapshot": "third_party/skills/coreyhaines31/marketingskills/ad-creative/UPSTREAM.md",
+      "sha256": "973244b10730f514ea1ec2c0a4f132d570e55cd3298392b4fc15f8227e5228ba",
+      "license_path": "third_party/skills/coreyhaines31/marketingskills/LICENSE"
+    },
+    "marketing/analytics": {
+      "repository": "coreyhaines31/marketingskills",
+      "skill": "analytics",
+      "path": "skills/analytics/SKILL.md",
+      "commit": "e85f3cbc2e4a79bf33b2a12e9bdd9087d414735b",
+      "stars": 55873,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/coreyhaines31/marketingskills/blob/e85f3cbc2e4a79bf33b2a12e9bdd9087d414735b/skills/analytics/SKILL.md",
+      "snapshot": "third_party/skills/coreyhaines31/marketingskills/analytics/UPSTREAM.md",
+      "sha256": "675e284b745837d595aa4d36903cb54b3921181fd343cc519d31f34fe8002196",
+      "license_path": "third_party/skills/coreyhaines31/marketingskills/LICENSE"
+    },
+    "game/qa-plan": {
+      "repository": "Donchitos/Claude-Code-Game-Studios",
+      "skill": "qa-plan",
+      "path": ".claude/skills/qa-plan/SKILL.md",
+      "commit": "05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418",
+      "stars": 27073,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/Donchitos/Claude-Code-Game-Studios/blob/05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418/.claude/skills/qa-plan/SKILL.md",
+      "snapshot": "third_party/skills/Donchitos/Claude-Code-Game-Studios/qa-plan/UPSTREAM.md",
+      "sha256": "fa3a333c9f0e298979e8e174165bcd58042d686b788327644487644c25c8efa5",
+      "license_path": "third_party/skills/Donchitos/Claude-Code-Game-Studios/LICENSE",
+      "stars_verified_at": "2026-10-22T06:09:20Z",
+      "content_verified_at": "2026-10-22T06:51:10.725592+00:00"
+    },
+    "game/test-evidence-review": {
+      "repository": "Donchitos/Claude-Code-Game-Studios",
+      "skill": "test-evidence-review",
+      "path": ".claude/skills/test-evidence-review/SKILL.md",
+      "commit": "05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418",
+      "stars": 27073,
+      "verified_at": "2026-10-22T06:09:20Z",
+      "license": "MIT",
+      "url": "https://github.com/Donchitos/Claude-Code-Game-Studios/blob/05ad7c8a5b8aa2aa86bbd3439ae7cf7295cac418/.claude/skills/test-evidence-review/SKILL.md",
+      "snapshot": "third_party/skills/Donchitos/Claude-Code-Game-Studios/test-evidence-review/UPSTREAM.md",
+      "sha256": "a7ab49090d3018910d1efc2a43bb16f8239c9150bc3b180bdfdaf8bca208c96f",
+      "license_path": "third_party/skills/Donchitos/Claude-Code-Game-Studios/LICENSE",
+      "stars_verified_at": "2026-10-22T06:09:20Z",
+      "content_verified_at": "2026-10-22T06:51:10.725702+00:00"
+    }
+  },
+  "nodes": {
+    "product:0": {
+      "name": "market-sizing · 市场调研",
+      "path": "departments/product/skills/0.md",
+      "sources": [
+        "pm/market-sizing"
+      ],
+      "adaptation": "self-contained-platform-port",
+      "excerpts": [
+        {
+          "source": "pm/market-sizing",
+          "text": "### Analysis Steps (Think Step by Step)\n\n1. **Market Definition**: Define the market boundaries — what problem space, which customer segments, what geography or constraints apply\n2. **Top-Down Estimation**: Start from total industry size and narrow to the relevant slice\n3. **Bottom-Up Estimation**: Build from unit economics (customers × price × frequency) to cross-validate\n4. **SAM Scoping**: Identify which portion of TAM is realistically serviceable given product capabilities, channels, and constraints\n5. **SOM Estimation**: Estimate achievable share in the next 1-3 years based on competitive position and go-to-market capacity\n6. **Growth Projection**: Forecast how TAM, SAM, and SOM may evolve over the next 2-3 years\n7. **Assumption Mapping**: Surface the key assumptions underlying each estimate"
+        }
+      ]
+    },
+    "product:1": {
+      "name": "competitor-analysis · 竞品拆解 / 反编译",
+      "path": "departments/product/skills/1.md",
+      "sources": [
+        "pm/competitor-analysis",
+        "game/reverse-document"
+      ],
+      "adaptation": "self-contained-platform-port",
+      "excerpts": [
+        {
+          "source": "pm/competitor-analysis",
+          "text": "### Analysis Steps (Think Step by Step)\n\n1. **Market Scoping**: Define the market, industry, and addressable customer base for $ARGUMENTS\n2. **Competitor Identification**: Use web search to identify 5 primary direct competitors\n3. **Competitive Intelligence**: Research each competitor's positioning, features, pricing, go-to-market strategy\n4. **Strengths & Weaknesses**: Assess competitor capabilities, limitations, and market positioning\n5. **Differentiation Mapping**: Identify gaps, overlaps, and opportunities for $ARGUMENTS to differentiate\n6. **Strategic Synthesis**: Develop insights about competitive dynamics and future threats"
+        },
+        {
+          "source": "game/reverse-document",
+          "text": "## Phase 2: Analyze Implementation\n\n**Read and understand the code/prototype**:\n\n**For design docs (GDD):**\n- Identify mechanics, rules, formulas\n- Extract gameplay values (damage, cooldowns, ranges)\n- Find state machines, ability systems, progression\n- Detect edge cases handled in code\n- Map dependencies (what systems interact?)\n\n**For architecture docs (ADR):**\n- Identify patterns (ECS, singleton, observer, etc.)\n- Understand technical decisions (threading, serialization, etc.)\n- Map dependencies and coupling\n- Assess performance characteristics\n- Find constraints and trade-offs\n\n**For concept docs (prototype analysis):**\n- Identify core mechanic\n- Extract emergent gameplay patterns\n- Note what worked vs what didn't\n- Find technical feasibility insights\n- Document player fantasy / feel"
+        }
+      ]
+    },
+    "product:2": {
+      "name": "quick-design · 玩法与商业化",
+      "path": "departments/product/skills/2.md",
+      "sources": [
+        "game/quick-design",
+        "pm/monetization-strategy"
+      ],
+      "adaptation": "self-contained-platform-port",
+      "excerpts": [
+        {
+          "source": "game/quick-design",
+          "text": "- **Tuning** — changing numbers or balance values in an existing system with no\n  behavioral change (most minimal path). Example: \"increase jump height from 5\n  to 6 units\", \"reduce enemy patrol speed by 10%\".\n- **Tweak** — a small behavioral change to an existing system that introduces no\n  new states, branches, or systems. Example: \"make dash invincible on frame 1\",\n  \"allow combo to cancel into roll\".\n- **Addition** — adding a small mechanic to an existing system that may introduce\n  1-2 new states or interactions. Example: \"add a parry window to the block\n  mechanic\", \"add a charge variant to the basic attack\".\n- **New Small System** — a standalone feature small enough that it has no\n  existing GDD and is under approximately one week of implementation work.\n  Example: \"achievement popup system\", \"simple day/night visual cycle\"."
+        },
+        {
+          "source": "pm/monetization-strategy",
+          "text": "## Monetization Framework\n\nFor each strategy, include:\n\n### 1. Strategy Name & Description\n- What is the monetization model?\n- How does it work for this product?\n- Who pays and what do they get?\n\n### 2. How It Works\n- Revenue model and pricing mechanics\n- Value exchange between company and customer\n- Payment frequency and transaction size\n- Lifecycle and retention mechanisms\n\n### 3. Audience Fit\n- Why does this resonate with your target customer?\n- How does it align with customer needs and preferences?\n- What problems does it solve for the customer?\n- Addressable market size and revenue potential\n\n### 4. Unit Economics\n- Estimated customer acquisition cost (CAC)\n- Estimated customer lifetime value (LTV)\n- Break-even timeline\n- Target gross margin\n\n### 5. Risks & Challenges\n- Market adoption risk\n- Pricing or feature sensitivity\n- Competitive vulnerability\n- Customer churn or resistance\n- Implementation complexity\n\n### 6. Competitive Position\n- How do competitors monetize?\n- What makes your approach differentiated?\n- Barriers to customer switching\n- Defense against competitive pricing\n\n### 7. Validation Experiment\n- Low-cost test to validate customer willingness to pay\n- Method: survey, landing page, pilot, freemium, waitlist\n- Success metric and decision criteria\n- Timeline and resources required"
+        }
+      ]
+    },
+    "product:3": {
+      "name": "create-prd · PRD 与原型",
+      "path": "departments/product/skills/3.md",
+      "sources": [
+        "pm/create-prd"
+      ],
+      "adaptation": "self-contained-platform-port",
+      "excerpts": [
+        {
+          "source": "pm/create-prd",
+          "text": "## Lean by default\n\nA first PRD is the shortest document that lets the team decide and start: about one to two pages (roughly 600-1,000 words). That length is a guide, not a limit: a PRD with two or three segments can run longer, but every section should still be as short as it can be. Write a longer, more detailed version only when the user asks for one.\n\n- **Complete means no gap that blocks a decision about the first version**, not every question answered. The questions under each section below are a checklist to pick from: answer the ones that matter for this initiative and skip the rest.\n- **A section with little to say gets a line or two.** If you don't know the contacts, leave the Contacts section out entirely; don't list roles to fill in later. Never pad a section or fill it with \"TBD\".\n- **Market Segments and Value Propositions are always included.** They are the core of this template: who has the problem, and why they would care. The value proposition follows the 6-part template in section 6.\n- **Don't invent.** What you don't know goes to 7.4 Assumptions and open questions, clearly marked, not into the body as fact."
+        }
+      ]
+    },
+    "design:0": {
+      "name": "art-bible · 视觉定调",
+      "path": "departments/design/skills/0.md",
+      "sources": [
+        "game/art-bible"
+      ],
+      "adaptation": "self-contained-platform-port",
+      "excerpts": [
+        {
+          "source": "game/art-bible",
+          "text": "### Section 4: Color System\n\n**Goal**: A complete, producible palette system that serves both aesthetic and communication needs.\n\nCover:\n- Primary palette (5–7 colors with roles — not just hex codes, but what each color means in this world)\n- Semantic color usage (what does red communicate? Gold? Blue? White? Establish the color vocabulary)\n- Per-biome or per-area color temperature rules (if the game has distinct areas)\n- UI palette (may differ from world palette — define the divergence explicitly)\n- Colorblind safety: which semantic colors need shape/icon/sound backup"
+        }
+      ]
+    },
+    "design:1": {
+      "name": "ui-ux-pro-max · UX 与界面",
+      "path": "departments/design/skills/1.md",
+      "sources": [
+        "ux/ui-ux-pro-max"
+      ],
+      "adaptation": "self-contained-platform-port",
+      "excerpts": [
+        {
+          "source": "ux/ui-ux-pro-max",
+          "text": "| Priority | Category | Impact | Domain | Key Checks (Must Have) | Anti-Patterns (Avoid) |\n|----------|----------|--------|--------|------------------------|------------------------|\n| 1 | Accessibility | CRITICAL | `ux` | Contrast 4.5:1, Alt text, Keyboard nav, Aria-labels | Removing focus rings, Icon-only buttons without labels |\n| 2 | Touch & Interaction | CRITICAL | `ux` | Min size 44×44px, 8px+ spacing, Loading feedback | Reliance on hover only, Instant state changes (0ms) |\n| 3 | Performance | HIGH | `ux` | WebP/AVIF, Lazy loading, Reserve space (CLS &lt; 0.1) | Layout thrashing, Cumulative Layout Shift |\n| 4 | Style Selection | HIGH | `style`, `product` | Match product type, Consistency, SVG icons (no emoji) | Mixing flat & skeuomorphic randomly, Emoji as icons |\n| 5 | Layout & Responsive | HIGH | `ux` | Mobile-first breakpoints, Viewport meta, No horizontal scroll | Horizontal scroll, Fixed px container widths, Disable zoom |\n| 6 | Typography & Color | MEDIUM | `typography`, `color` | Base 16px, Line-height 1.5, Semantic color tokens | Text &lt; 12px body, Gray-on-gray, Raw hex in components |\n| 7 | Animation | MEDIUM | `ux`, `gsap` | Context-aware timing, Motion conveys meaning, Spatial continuity | One duration for every transition, Animating width/height, No reduced-motion |\n| 8 | Forms & Feedback | MEDIUM | `ux` | Visible labels, Error near field, Helper text, Progressive disclosure | Placeholder-only label, Errors only at top, Overwhelm upfront |\n| 9 | Navigation Patterns | HIGH | `ux` | Predictable back, Bottom nav ≤5, Deep linking | Overloaded nav, Broken back behavior, No deep links |\n| 10 | Charts & Data | LOW | `chart` | Legends, Tooltips, Accessible colors | Relying on color alone to convey meaning |"
+        }
+      ]
+    },
+    "design:2": {
+      "name": "asset-spec · 资产生产",
+      "path": "departments/design/skills/2.md",
+      "sources": [
+        "game/asset-spec"
+      ],
+      "adaptation": "self-contained-platform-port",
+      "excerpts": [
+        {
+          "source": "game/asset-spec",
+          "text": "## ASSET-[NNN] — [Asset Name]\n\n| Field | Value |\n|-------|-------|\n| Category | [Sprite / VFX / Environment / UI / Audio / 3D] |\n| Dimensions | [e.g. 256×256px, 4-frame sprite sheet] |\n| Format | [PNG / SVG / WAV / etc.] |\n| Naming | [e.g. vfx_frost_hit_01.png] |\n| Polycount | [if 3D — e.g. <800 tris] |\n| Texture Res | [e.g. 512px — matches Art Bible §8 Tier 2] |\n\n**Visual Description:**\n[2–3 sentences. Specific enough for two artists to produce consistent results.]\n\n**Art Bible Anchors:**\n- §3 Shape Language: [relevant rule applied]\n- §4 Color System: [color role — e.g. \"uses Threat Blue per semantic color rules\"]\n\n**Generation Prompt:**\n[Ready-to-use prompt. Include: style keywords, composition notes, color palette anchors, lighting direction, negative prompts.]\n\n**Status:** Needed"
+        }
+      ]
+    },
+    "design:3": {
+      "name": "asset-audit · 设计验收",
+      "path": "departments/design/skills/3.md",
+      "sources": [
+        "game/asset-audit"
+      ],
+      "adaptation": "self-contained-platform-port",
+      "excerpts": [
+        {
+          "source": "game/asset-audit",
+          "text": "**File standards:**\n- Textures: Power-of-two dimensions, correct format (PNG for UI, compressed for 3D), within size budget\n- Audio: Correct sample rate, format (OGG for SFX, OGG/MP3 for music), within duration limits.\n  `file` reports an audio file's format and sample rate but not its length, and no\n  pre-approved tool here does; a duration budget is therefore\n  `NOT ASSESSED — duration not measurable here`, naming the files it covers.\n- Data: Valid JSON/YAML, schema-compliant\n\nOn Unreal an asset file (`.uasset`, `.umap`) does not keep its source file's\nformat or dimensions, so Format is `NOT ASSESSED` there; its size is still measured.\n\n**Orphaned assets:** Search the code root for references to each asset file. Flag any with no references.\n\n**Missing assets:** Search the code root for asset references and verify the files exist.\n\nBoth searches need code: if the code root holds no source files, Orphaned and\nMissing are `NOT ASSESSED — no code to search`. On Unity and Unreal most asset\nreferences live in scenes, prefabs and other assets rather than code, so an\nasset no code names may still be in use: Orphaned is `NOT ASSESSED` there.\n\n---"
+        }
+      ]
+    },
+    "development:0": {
+      "name": "writing-plans · 技术方案",
+      "path": "departments/development/skills/0.md",
+      "sources": [
+        "super/writing-plans",
+        "game/architecture-decision",
+        "game/architecture-decision-method",
+        "game/architecture-decision-template"
+      ],
+      "adaptation": "self-contained-platform-port",
+      "excerpts": [
+        {
+          "source": "super/writing-plans",
+          "text": "## File Structure\n\nBefore defining tasks, map out which files will be created or modified and what each one is responsible for. This is where decomposition decisions get locked in.\n\n- Design units with clear boundaries and well-defined interfaces. Each file should have one clear responsibility.\n- You reason best about code you can hold in context at once, and your edits are more reliable when files are focused. Prefer smaller, focused files over large ones that do too much.\n- Files that change together should live together. Split by responsibility, not by technical layer.\n- In existing codebases, follow established patterns. If the codebase uses large files, don't unilaterally restructure - but if a file you're modifying has grown unwieldy, including a split in the plan is reasonable.\n\nThis structure informs the task decomposition. Each task should produce self-contained changes that make sense independently.\n\n## Task Right-Sizing\n\nA task is the smallest unit that carries its own test cycle and is worth a\nfresh reviewer's gate. When drawing task boundaries: fold setup,\nconfiguration, scaffolding, and documentation steps into the task whose\ndeliverable needs them; split only where a reviewer could meaningfully\nreject one task while approving its neighbor. Each task ends with an\nindependently testable deliverable."
+        },
+        {
+          "source": "game/architecture-decision",
+          "text": "**Do NOT unblock stories here.** This ADR is `Proposed` — Step 5 guarantees it,\nand a story blocked *pending this decision* is still pending it. Unblocking on\nauthoring defeats the guard at the moment it becomes relevant: the pipeline\nappears to flow while running on decisions nobody has accepted."
+        },
+        {
+          "source": "game/architecture-decision-method",
+          "text": "**Derive assumptions first:**\n- **Problem**: Infer from the title + GDD context what decision needs to be made\n- **Alternatives**: Propose 2-3 concrete options from engine reference + GDD requirements\n- **Dependencies**: Scan existing ADRs for upstream dependencies. **If the scan is\n  inconclusive, present `UNKNOWN — scan inconclusive, please confirm`, never\n  `None`.** The two are not interchangeable: `None` asserts that nothing upstream\n  constrains this decision, and a user confirming a prefilled list cannot tell an\n  assertion from a guess. This field is load-bearing — `/architecture-review`\n  flags unaccepted dependencies, `/dev-story` reads it, and the acceptance route\n  in Phase 0 **refuses to accept an ADR whose dependencies are not themselves\n  Accepted**. A dependency list that defaulted to empty makes that check pass\n  while examining nothing. `UNKNOWN` must be resolved during the confirm/adjust\n  prompt; it is a prompt state, never a value written to the file\n- **GDD linkage**: Extract which GDD systems the title directly relates to\n- **Status**: Always `Proposed` for new ADRs — never ask the user what the status is"
+        },
+        {
+          "source": "game/architecture-decision-template",
+          "text": "# ADR-[NNNN]: [Title]\n\n## Status\n[Proposed | Accepted | Deprecated | Superseded by ADR-XXXX]\n\n## Date\n[Date of decision]\n\n## Last Verified\n[YYYY-MM-DD — when this ADR was last confirmed accurate against the current\nengine version and design. Update this date when you re-read and confirm it is\nstill correct, even if nothing changed.]\n\n## Decision Makers\n[Who was involved in this decision]\n\n## Summary\n[2 sentences: what problem this ADR solves, and what was decided. Written for\ntiered context loading — a skill scanning 20 ADRs uses this to decide whether to\nread the full decision. Be specific: name the system, the problem, and the\nchosen approach.]\n\n## Engine Compatibility\n\n| Field | Value |\n|-------|-------|\n| **Engine** | [e.g. Godot 4.7] |\n| **Domain** | [Physics / Rendering / UI / Audio / Navigation / Animation / Networking / Core / Input] |\n| **Layer** | [Foundation / Core / Feature / Presentation] |\n| **Knowledge Risk** | [LOW / MEDIUM / HIGH — from VERSION.md] |\n| **References Consulted** | [List engine-reference docs read, e.g. `docs/engine-reference/godot/modules/physics.md`] |\n| **Post-Cutoff APIs Used** | [Any APIs from post-LLM-cutoff versions this decision depends on, or \"None\"] |\n| **Verification Required** | [Specific behaviours to test before shipping, or \"None\"] |\n\n## ADR Dependencies\n\n| Field | Value |\n|-------|-------|\n| **Depends On** | [ADR-NNNN (must be Accepted before this can be implemented), or \"None\"] |\n| **Enables** | [ADR-NNNN (this ADR unlocks that decision), or \"None\"] |\n| **Blocks** | [Epic/Story name — cannot start until this ADR is Accepted, or \"None\"] |\n| **Ordering Note** | [Any sequencing constraint that isn't captured above] |\n\n## Context\n\n### Problem Statement\n[What problem are we solving? Why does this decision need to be made now?]\n\n### Constraints\n- [Technical constraints]\n- [Timeline constraints]\n- [Resource constraints]\n- [Compatibility requirements]\n\n### Requirements\n- [Must support X]\n- [Must perform within Y budget]\n- [Must integrate with Z]\n\n## Decision\n\n[The specific technical decision made, described in enough detail for someone\nto implement it.]\n\n### Architecture Diagram\n[ASCII diagram or description of the system architecture this creates]\n\n### Key Interfaces\n[API contracts or interface definitions this decision creates]\n\n### Implementation Guidelines\n[Specific guidance for the programmer implementing this decision — the rules a\n`/create-control-manifest` or `/dev-story` run should follow. State mandates as\n\"must / must never\" so they extract cleanly.]\n\n## Alternatives Considered\n\n### Alternative 1: [Name]\n- **Description**: [How this would work]\n- **Pros**: [Advantages]\n- **Cons**: [Disadvantages]\n- **Rejection Reason**: [Why this was not chosen]\n\n### Alternative 2: [Name]\n- **Description**: [How this would work]\n- **Pros**: [Advantages]\n- **Cons**: [Disadvantages]\n- **Rejection Reason**: [Why this was not chosen]\n\n## Consequences\n\n### Positive\n- [Good outcomes of this decision]\n\n### Negative\n- [Trade-offs and costs accepted]\n\n## Risks\n- [Things that could go wrong]\n- [Mitigation for each risk]\n\n## GDD Requirements Addressed\n\n| GDD System | Requirement | How This ADR Addresses It |\n|------------|-------------|--------------------------|\n| [system-name].md | [specific rule, formula, or performance constraint from that GDD] | [how this decision satisfies it] |\n\n## Performance Implications\n- **CPU**: [Expected impact]\n- **Memory**: [Expected impact]\n- **Load Time**: [Expected impact]\n- **Network**: [Expected impact, if applicable]\n\n## Migration Plan\n[If this changes existing code, how do we get from here to there?]\n\n## Validation Criteria\n[How will we know this decision was correct? What metrics or tests?]\n\n## Related\n- [Links to related ADRs — note if supersedes, contradicts, or depends on]\n- [Links to related design documents]"
+        }
+      ]
+    },
+    "development:1": {
+      "name": "test-driven-development · 功能实现",
+      "path": "departments/development/skills/1.md",
+      "sources": [
+        "super/test-driven-development"
+      ],
+      "adaptation": "self-contained-platform-port",
+      "excerpts": [
+        {
+          "source": "super/test-driven-development",
+          "text": "### RED - Write Failing Test\n\nWrite one minimal test showing what should happen.\n\n<Good>\n```typescript\ntest('retries failed operations 3 times', async () => {\n  let attempts = 0;\n  const operation = () => {\n    attempts++;\n    if (attempts < 3) throw new Error('fail');\n    return 'success';\n  };\n\n  const result = await retryOperation(operation);\n\n  expect(result).toBe('success');\n  expect(attempts).toBe(3);\n});\n```\nClear name, tests real behavior, one thing\n</Good>\n\n<Bad>\n```typescript\ntest('retry works', async () => {\n  const mock = jest.fn()\n    .mockRejectedValueOnce(new Error())\n    .mockRejectedValueOnce(new Error())\n    .mockResolvedValueOnce('success');\n  await retryOperation(mock);\n  expect(mock).toHaveBeenCalledTimes(3);\n});\n```\nVague name, tests mock not code\n</Bad>\n\n**Requirements:**\n- One behavior\n- Clear name\n- Real code (no mocks unless unavoidable)\n\n### Verify RED - Watch It Fail\n\n**MANDATORY. Never skip.**\n\n```bash\nnpm test path/to/test.test.ts\n```\n\nConfirm:\n- Test fails (not errors)\n- Failure message is expected\n- Fails because feature missing (not typos)\n\n**Test passes?** You're testing existing behavior. Fix test.\n\n**Test errors?** Fix error, re-run until it fails correctly.\n\n### GREEN - Minimal Code\n\nWrite simplest code to pass the test.\n\n<Good>\n```typescript\nasync function retryOperation<T>(fn: () => Promise<T>): Promise<T> {\n  for (let i = 0; i < 3; i++) {\n    try {\n      return await fn();\n    } catch (e) {\n      if (i === 2) throw e;\n    }\n  }\n  throw new Error('unreachable');\n}\n```\nJust enough to pass\n</Good>\n\n<Bad>\n```typescript\nasync function retryOperation<T>(\n  fn: () => Promise<T>,\n  options?: {\n    maxRetries?: number;\n    backoff?: 'linear' | 'exponential';\n    onRetry?: (attempt: number) => void;\n  }\n): Promise<T> {\n  // YAGNI\n}\n```\nOver-engineered\n</Bad>\n\nDon't add features, refactor other code, or \"improve\" beyond the test.\n\n### Verify GREEN - Watch It Pass\n\n**MANDATORY.**\n\n```bash\nnpm test path/to/test.test.ts\n```\n\nConfirm:\n- Test passes\n- Other tests still pass\n- Output pristine (no errors, warnings)\n\n**Test fails?** Fix code, not test.\n\n**Other tests fail?** Fix now.\n\n**\"Other tests\" means the project's suite, not just your file.** A\ngreen run of the test you wrote is not a green suite. Before you call\nthe change done, run the project's test command (bare `pytest`,\n`npm test`, `cargo test` — whatever the repo uses) even when your task\nnamed only one test file. A scope statement in your task bounds the\ndeliverable, not your verification. Any failure that run shows —\nincluding one you didn't cause — goes in your report by name; a red\ntest you watched scroll past and didn't mention is a report falsified\nby omission."
+        }
+      ]
+    },
+    "development:2": {
+      "name": "code-review-excellence · 集成与自检",
+      "path": "departments/development/skills/2.md",
+      "sources": [
+        "agents/code-review-excellence",
+        "super/verification-before-completion"
+      ],
+      "adaptation": "self-contained-platform-port",
+      "excerpts": [
+        {
+          "source": "agents/code-review-excellence",
+          "text": "## Review Process\n\n### Phase 1: Context Gathering (2-3 minutes)\n\n```markdown\nBefore diving into code, understand:\n\n1. Read PR description and linked issue\n2. Check PR size (>400 lines? Ask to split)\n3. Review CI/CD status (tests passing?)\n4. Understand the business requirement\n5. Note any relevant architectural decisions\n```\n\n### Phase 2: High-Level Review (5-10 minutes)\n\n```markdown\n1. **Architecture & Design**\n   - Does the solution fit the problem?\n   - Are there simpler approaches?\n   - Is it consistent with existing patterns?\n   - Will it scale?\n\n2. **File Organization**\n   - Are new files in the right places?\n   - Is code grouped logically?\n   - Are there duplicate files?\n\n3. **Testing Strategy**\n   - Are there tests?\n   - Do tests cover edge cases?\n   - Are tests readable?\n```\n\n### Phase 3: Line-by-Line Review (10-20 minutes)\n\n```markdown\nFor each file:\n\n1. **Logic & Correctness**\n   - Edge cases handled?\n   - Off-by-one errors?\n   - Null/undefined checks?\n   - Race conditions?\n\n2. **Security**\n   - Input validation?\n   - SQL injection risks?\n   - XSS vulnerabilities?\n   - Sensitive data exposure?\n\n3. **Performance**\n   - N+1 queries?\n   - Unnecessary loops?\n   - Memory leaks?\n   - Blocking operations?\n\n4. **Maintainability**\n   - Clear variable names?\n   - Functions doing one thing?\n   - Complex code commented?\n   - Magic numbers extracted?\n```\n\n### Phase 4: Summary & Decision (2-3 minutes)\n\n```markdown\n1. Summarize key concerns\n2. Highlight what you liked\n3. Make clear decision:\n   - ✅ Approve\n   - 💬 Comment (minor suggestions)\n   - 🔄 Request Changes (must address)\n4. Offer to pair if complex\n```"
+        },
+        {
+          "source": "super/verification-before-completion",
+          "text": "## The Gate Function\n\n```\nBEFORE claiming any status or expressing satisfaction:\n\n1. IDENTIFY: What command proves this claim?\n2. RUN: Execute the FULL command (fresh, complete)\n3. READ: Full output, check exit code, count failures\n4. VERIFY: Does output confirm the claim?\n   - If NO: State actual status with evidence\n   - If YES: State claim WITH evidence\n5. ONLY THEN: Make the claim\n\nSkip any step = lying, not verifying\n```"
+        }
+      ]
+    },
+    "development:3": {
+      "name": "release-checklist · 版本交付",
+      "path": "departments/development/skills/3.md",
+      "sources": [
+        "game/release-checklist",
+        "super/verification-before-completion"
+      ],
+      "adaptation": "self-contained-platform-port",
+      "excerpts": [
+        {
+          "source": "game/release-checklist",
+          "text": "## Release Checklist: [Version] -- [Platform]\nGenerated: [Date]\n\n### Codebase Health\n- Scanned: [N] source files (or `NOT ASSESSED — [reason]`, per Phase 3)\n- TODO count: [N] ([list top 5 if many])\n- FIXME count: [N] ([list all -- these are potential blockers])\n- HACK count: [N] ([list all -- these need review])\n\n### Build Verification\n- [ ] Clean build succeeds on all target platforms\n- [ ] No compiler warnings (zero-warning policy)\n- [ ] All assets included and loading correctly\n- [ ] Build size within budget ([target size])\n- [ ] Build version number correctly set ([version])\n- [ ] Build is reproducible from tagged commit\n\n### Quality Gates\n- Open bugs (`production/qa/bugs/`): [N] S1, [N] S2, [N] S3 -- or `NOT ASSESSED — no bug records`\n- [ ] Zero open S1 (Critical) bugs\n- [ ] Zero open S2 (High) and S3 (Medium) bugs, no exceptions -- this row at `workflow: full` only; at `standard`/`minimal` open S2/S3 bugs go in the Rationale as risks\n- [ ] All critical path features tested and signed off by QA\n- [ ] Performance within budgets:\n  - [ ] Target FPS met on minimum spec hardware\n  - [ ] Memory usage within budget\n  - [ ] Load times within budget\n  - [ ] No memory leaks over extended play sessions\n- [ ] No regression from previous build\n- [ ] Soak test passed (4+ hours continuous play)\n\n### Content Complete\n- [ ] All placeholder assets replaced with final versions\n- [ ] All TODO/FIXME in content files resolved or documented\n- [ ] All player-facing text proofread\n- [ ] All text localization-ready (no hardcoded strings)\n- [ ] Audio mix finalized and approved\n- [ ] Credits complete and accurate"
+        },
+        {
+          "source": "super/verification-before-completion",
+          "text": "## The Gate Function\n\n```\nBEFORE claiming any status or expressing satisfaction:\n\n1. IDENTIFY: What command proves this claim?\n2. RUN: Execute the FULL command (fresh, complete)\n3. READ: Full output, check exit code, count failures\n4. VERIFY: Does output confirm the claim?\n   - If NO: State actual status with evidence\n   - If YES: State claim WITH evidence\n5. ONLY THEN: Make the claim\n\nSkip any step = lying, not verifying\n```"
+        }
+      ]
+    },
+    "testing:0": {
+      "name": "qa-plan + test-scenarios · 用例",
+      "path": "departments/testing/skills/0.md",
+      "sources": [
+        "game/qa-plan",
+        "pm/test-scenarios"
+      ],
+      "adaptation": "self-contained-platform-port",
+      "excerpts": [
+        {
+          "source": "pm/test-scenarios",
+          "text": "## Step-by-Step Process\n\n1. **Review the user story** and acceptance criteria\n2. **Define test objectives** - What specific behavior to validate\n3. **Establish starting conditions** - System state, data setup, configurations\n4. **Identify user roles** - Who performs the test actions\n5. **Create test steps** - Break down interactions step-by-step\n6. **Define expected outcomes** - Observable results after each step\n7. **Consider edge cases** - Invalid inputs, boundary conditions\n8. **Output detailed test scenarios** - Ready for QA execution\n\n## Scenario Template\n\n**Test Scenario:** [Clear scenario name]\n\n**Test Objective:** [What this test validates]\n\n**Starting Conditions:**\n- [System state required]\n- [Data or configuration needed]\n- [User setup or permissions]\n\n**User Role:** [Who performs the test]\n\n**Test Steps:**\n1. [First action and its expected result]\n2. [Second action and observable outcome]\n3. [Third action and system behavior]\n4. [Completion action and final state]\n\n**Expected Outcomes:**\n- [Observable result 1]\n- [Observable result 2]\n- [Observable result 3]"
+        },
+        {
+          "source": "game/qa-plan",
+          "text": "| Story Type | Classification Indicators |\n|---|---|\n| **Logic** | Acceptance criteria reference calculations, formulas, numerical thresholds, state transitions, AI decisions, data validation, buff/debuff stacking, economy transactions, or any testable computation |\n| **Integration** | Criteria involve two or more systems interacting, signals or events propagating across system boundaries, save/load round-trips, network sync, or persistence |\n| **Visual/Feel** | Criteria reference animation behaviour, VFX, shader output, \"feels responsive\", perceived timing, screen shake, particle effects, audio sync, or visual feedback quality |\n| **UI** | Criteria reference menus, HUD elements, buttons, screens, dialogue boxes, inventory panels, tooltips, or any player-facing interface element |\n| **Config/Data** | Changes are limited to balance tuning values, data files, or configuration — no new code logic is involved |\n\n**Mixed stories** (e.g., a story that adds both a formula and a UI display):\nassign the primary type based on which acceptance criteria carry the highest\nimplementation risk, and note the secondary type. Mixed Logic+Integration or\nVisual+UI combinations are the most common."
+        }
+      ]
+    },
+    "testing:1": {
+      "name": "test-evidence-review + intended-vs-implemented · 执行",
+      "path": "departments/testing/skills/1.md",
+      "sources": [
+        "game/test-evidence-review",
+        "pm/intended-vs-implemented"
+      ],
+      "adaptation": "self-contained-platform-port",
+      "excerpts": [
+        {
+          "source": "pm/intended-vs-implemented",
+          "text": "## Method\n\n1. **Establish intent.** Read the system docs, wherever the repo keeps them (`documentation/*.md` by default; see the **shipping-artifacts** skill), as the source of truth for what *should* be true: who may access what, which boundaries are trusted, which data is public. Treat the docs as claims to verify, not as proof.\n\n2. **Gather implementation evidence.** Read the code that enforces (or fails to enforce) each claim. Evidence is a cited file and line — the actual authorization check, the actual query filter, the actual sanitizer. \"It's probably handled upstream\" is not evidence; the code path is.\n\n3. **Compare claim to code, one boundary at a time.** For each documented rule, ask: does an enforcement point actually implement it, on the server, on every path? Distrust comments like \"internal only,\" \"admin only,\" or \"validated elsewhere\" — verify them in code."
+        },
+        {
+          "source": "game/test-evidence-review",
+          "text": "### Edge case coverage\n\nFor each acceptance criterion in the story that contains a number, threshold,\nor \"when X happens\" conditional: check whether a test function name or\ntest body references that specific case.\n\nHeuristics:\n- Grep test file for \"zero\", \"max\", \"null\", \"empty\", \"min\", \"invalid\",\n  \"boundary\", \"edge\" — presence of any is a positive signal\n- If the story has a Formulas section with specific bounds: check whether\n  tests exercise at minimum/maximum values"
+        },
+        {
+          "source": "game/test-evidence-review",
+          "text": "### Formula traceability\n\nFor Logic stories where the GDD has a Formulas section: check that the test\nfile contains at least one test whose name or comment references the formula\nname or a formula value. A test that exercises a formula without mentioning\nit by name is harder to maintain when the formula changes."
+        }
+      ]
+    },
+    "testing:2": {
+      "name": "systematic-debugging · 归因",
+      "path": "departments/testing/skills/2.md",
+      "sources": [
+        "super/systematic-debugging"
+      ],
+      "adaptation": "self-contained-platform-port",
+      "excerpts": [
+        {
+          "source": "super/systematic-debugging",
+          "text": "### Phase 2: Pattern Analysis\n\n**Find the pattern before fixing:**\n\n1. **Find Working Examples**\n   - Locate similar working code in same codebase\n   - What works that's similar to what's broken?\n\n2. **Compare Against References**\n   - If implementing pattern, read reference implementation COMPLETELY\n   - Don't skim - read every line\n   - Understand the pattern fully before applying\n\n3. **Identify Differences**\n   - What's different between working and broken?\n   - List every difference, however small\n   - Don't assume \"that can't matter\"\n\n4. **Understand Dependencies**\n   - What other components does this need?\n   - What settings, config, environment?\n   - What assumptions does it make?\n\n### Phase 3: Hypothesis and Testing\n\n**Scientific method:**\n\n1. **Form Single Hypothesis**\n   - State clearly: \"I think X is the root cause because Y\"\n   - Write it down\n   - Be specific, not vague\n\n2. **Test Minimally**\n   - Make the SMALLEST possible change to test hypothesis\n   - One variable at a time\n   - Don't fix multiple things at once\n\n3. **Verify Before Continuing**\n   - Did it work? Yes → Phase 4\n   - Didn't work? Form NEW hypothesis\n   - DON'T add more fixes on top\n\n4. **When You Don't Know**\n   - Say \"I don't understand X\"\n   - Don't pretend to know\n   - Ask for help\n   - Research more"
+        }
+      ]
+    },
+    "testing:3": {
+      "name": "bug-triage · 筛选",
+      "path": "departments/testing/skills/3.md",
+      "sources": [
+        "game/bug-triage"
+      ],
+      "adaptation": "self-contained-platform-port",
+      "excerpts": [
+        {
+          "source": "game/bug-triage",
+          "text": "### Severity (impact of the bug)\n\n| Severity | Definition |\n|----------|-----------|\n| **S1 — Critical** | Game crashes, data loss, or complete feature failure. Cannot proceed past this point. |\n| **S2 — High** | Major feature broken but game is still playable. Significant wrong behaviour. |\n| **S3 — Medium** | Feature degraded but a workaround exists. Minor wrong behaviour. |\n| **S4 — Low** | Visual glitch, cosmetic issue, typo. No gameplay impact. |\n\n### Priority (urgency of the fix)\n\n| Priority | Definition |\n|----------|-----------|\n| **P1 — Fix this sprint** | Blocks QA, blocks release, or is regression from last sprint |\n| **P2 — Fix soon** | Should be resolved before the next major milestone |\n| **P3 — Backlog** | Would be good to fix, but no active blocking impact |\n| **P4 — Won't fix / Deferred** | Accepted risk or out of scope for current product scope |"
+        }
+      ]
+    },
+    "testing:4": {
+      "name": "bug-report · 提单",
+      "path": "departments/testing/skills/4.md",
+      "sources": [
+        "game/bug-report"
+      ],
+      "adaptation": "self-contained-platform-port",
+      "excerpts": [
+        {
+          "source": "game/bug-report",
+          "text": "## Environment\n- **Build**: [Version or commit hash]\n- **Platform**: [OS, hardware if relevant]\n- **Scene/Level**: [Where in the game]\n- **Game State**: [Relevant state -- inventory, quest progress, etc.]\n\n## Reproduction Steps\n**Preconditions**: [Required state before starting]\n\n1. [Exact step 1]\n2. [Exact step 2]\n3. [Exact step 3]\n\n**Expected Result**: [What should happen]\n**Actual Result**: [What actually happens]\n\n## Technical Context\n- **Likely affected files**: [List of files based on codebase search]\n- **Related systems**: [What other systems might be involved]\n- **Possible root cause**: [If identifiable from the description]\n\n## Evidence\n- **Logs**: [Relevant log output if available]\n- **Visual**: [Description of visual evidence]"
+        }
+      ]
+    },
+    "testing:5": {
+      "name": "regression-suite + test-evidence-review · 回归",
+      "path": "departments/testing/skills/5.md",
+      "sources": [
+        "game/regression-suite",
+        "game/test-evidence-review",
+        "super/verification-before-completion"
+      ],
+      "adaptation": "self-contained-platform-port",
+      "excerpts": [
+        {
+          "source": "game/regression-suite",
+          "text": "## 4. Map Coverage — Fixed Bugs\n\nFor each closed bug:\n\n1. Extract the system slug from the bug's metadata\n2. Grep `tests/unit/[system]/` and `tests/integration/[system]/` for a test\n   that references the bug ID or the specific failure scenario\n3. Assign:\n   - **HAS REGRESSION TEST** — a test was found that would catch this bug\n   - **MISSING REGRESSION TEST** — bug was fixed but no test guards against recurrence\n\nFor MISSING REGRESSION TEST items:\n- Flag them as regression gaps\n- Suggest the test file path: `tests/unit/[system]/[bug-slug]_regression_test.[ext]`\n- Note: \"Without this test, this bug can silently return in a future sprint.\"\n\n---"
+        },
+        {
+          "source": "super/verification-before-completion",
+          "text": "## The Gate Function\n\n```\nBEFORE claiming any status or expressing satisfaction:\n\n1. IDENTIFY: What command proves this claim?\n2. RUN: Execute the FULL command (fresh, complete)\n3. READ: Full output, check exit code, count failures\n4. VERIFY: Does output confirm the claim?\n   - If NO: State actual status with evidence\n   - If YES: State claim WITH evidence\n5. ONLY THEN: Make the claim\n\nSkip any step = lying, not verifying\n```"
+        },
+        {
+          "source": "game/test-evidence-review",
+          "text": "### Edge case coverage\n\nFor each acceptance criterion in the story that contains a number, threshold,\nor \"when X happens\" conditional: check whether a test function name or\ntest body references that specific case.\n\nHeuristics:\n- Grep test file for \"zero\", \"max\", \"null\", \"empty\", \"min\", \"invalid\",\n  \"boundary\", \"edge\" — presence of any is a positive signal\n- If the story has a Formulas section with specific bounds: check whether\n  tests exercise at minimum/maximum values"
+        }
+      ]
+    },
+    "growth:0": {
+      "name": "launch-checklist · 上线准备",
+      "path": "departments/growth/skills/0.md",
+      "sources": [
+        "game/launch-checklist"
+      ],
+      "adaptation": "self-contained-platform-port",
+      "excerpts": [
+        {
+          "source": "game/launch-checklist",
+          "text": "## Go / No-Go Decision\n\n**Overall Status**: [READY / CONDITIONAL / NOT ASSESSED / NOT READY]\n\nFirst match wins: **NOT READY** if Blocking Items is not empty; else **NOT\nASSESSED** if any item is `- [?]`, any section came out `NOT ASSESSED`, or any\nitem is still unconfirmed — neither ticked on evidence or on a Phase 4b answer,\nnor marked N/A, nor listed below (name each; group by section when there are\nmany); else **CONDITIONAL** if Conditional\nItems is not empty; else **READY**. NOT ASSESSED outranks CONDITIONAL and READY —\nan item nobody could check is not a passed one — and ranks below NOT READY, so a\nknown blocker is never buried behind it."
+        }
+      ]
+    },
+    "growth:1": {
+      "name": "ad-creative · 素材与投放",
+      "path": "departments/growth/skills/1.md",
+      "sources": [
+        "marketing/ad-creative"
+      ],
+      "adaptation": "self-contained-platform-port",
+      "excerpts": [
+        {
+          "source": "marketing/ad-creative",
+          "text": "**Why each input matters:**\n- **Winning ads** carry the hooks, structures, and angles already proven for this brand\n- **Reviews** carry the exact language buyers use for pain, transformation, and unexpected benefits — pull copy from them verbatim rather than paraphrasing\n- **Ad comments** are the most-skipped and highest-value input: objections (\"but does it work for X?\") become FAQ Card ads, and unprompted praise surfaces angles you didn't write\n\n**Grounding rules:**\n- Every concept cites its source (which review, winning ad, or comment it traces to)\n- No invented claims, stats, or testimonials — ever\n- If `inputs/winning-ads/` or `inputs/reviews/` is empty, stop and ask the user to populate it before generating. Do not generate ungrounded concepts as a fallback.\n- Inputs decay: refresh `inputs/winning-ads/` as new ads scale; refresh `inputs/reviews/` and `inputs/comments/` monthly\n\n---"
+        }
+      ]
+    },
+    "growth:2": {
+      "name": "analytics · 数据与运营",
+      "path": "departments/growth/skills/2.md",
+      "sources": [
+        "marketing/analytics"
+      ],
+      "adaptation": "self-contained-platform-port",
+      "excerpts": [
+        {
+          "source": "marketing/analytics",
+          "text": "## Core Principles\n\n### 1. Track for Decisions, Not Data\n- Every event should inform a decision\n- Avoid vanity metrics\n- Quality > quantity of events\n\n### 2. Start with the Questions\n- What do you need to know?\n- What actions will you take based on this data?\n- Work backwards to what you need to track\n\n### 3. Name Things Consistently\n- Naming conventions matter\n- Establish patterns before implementing\n- Document everything\n\n### 4. Maintain Data Quality\n- Validate implementation\n- Monitor for issues\n- Clean data > more data\n\n### 5. Compute, Don't Eyeball\n- Derive every total, rate, and delta from row-level data with a script or\n  spreadsheet — never by scanning rows and summing mentally. One silently\n  dropped row corrupts every figure downstream of it.\n- Cross-check each headline figure a second, independent way (a\n  reconciliation total, a recomputation from a different grouping) before\n  reporting it, and chase any mismatch to the exact row.\n- When a claim is about one segment — a single campaign, ad set, channel, or\n  week — report that segment's own numbers. Never fold it into a neighboring\n  group and let the group's total speak for it.\n\n### 6. Match Observation Windows\n- A rate or efficiency metric divides a numerator and denominator that cover\n  the same closed observation window. Never divide a full period's spend by a\n  partial period's conversions or revenue — restate both over the weeks that\n  actually have data, and say which weeks those are.\n- Cohort rates use only cohorts whose observation window has ended. A trial\n  or signup still inside its window is pending, not failed — exclude it from\n  the denominator and label it as pending rather than counting it against\n  the rate.\n\n### 7. Recommend Against the Stated Goal\n- Analysis ends in a recommendation, and the recommendation must be argued\n  from the goal the brief states — the launch target, audience, revenue, or\n  positioning objective — not only from what is operationally easiest.\n  Name which stated goal each option serves and what it trades away.\n\n---"
+        }
+      ]
+    },
+    "growth:3": {
+      "name": "ab-test-analysis · 迭代决策",
+      "path": "departments/growth/skills/3.md",
+      "sources": [
+        "pm/ab-test-analysis"
+      ],
+      "adaptation": "self-contained-platform-port",
+      "excerpts": [
+        {
+          "source": "pm/ab-test-analysis",
+          "text": "4. **Check guardrail metrics**:\n   - Did any guardrail metrics (revenue, engagement, page load time) degrade?\n   - A winning primary metric with degraded guardrails may not be a true win\n\n5. **Interpret results**:\n\n   | Outcome | Recommendation |\n   |---|---|\n   | Significant positive lift, no guardrail issues | **Ship it** — roll out to 100% |\n   | Significant positive lift, guardrail concerns | **Investigate** — understand trade-offs before shipping |\n   | Not significant, positive trend | **Extend the test** — need more data or larger effect |\n   | Not significant, flat | **Stop the test** — no meaningful difference detected |\n   | Significant negative lift | **Don't ship** — revert to control, analyze why |"
+        }
+      ]
+    }
+  }
+}

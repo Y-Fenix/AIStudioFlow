@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; frame-src 'self' about: blob:; img-src blob: data:; connect-src http://127.0.0.1:17321; base-uri 'none'; form-action 'none'">
+<title>GagaSort · 质量报告查看器</title>
+<style>
+*{box-sizing:border-box}body{margin:0;color:#183632;background:#f3f6f5;font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,.pick{font:inherit;border:1px solid #d4dfdb;border-radius:8px;cursor:pointer;padding:9px 17px;background:#fff;color:#183632}.pick{display:inline-block;background:#235c4b;color:white;border-color:#235c4b}button:focus-visible,.pick:focus-within{outline:3px solid #c6a76b;outline-offset:3px}header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 24px;background:white;border-bottom:1px solid #dce5e1}header strong{font-size:17px}header small{display:block;color:#687e76}#home{max-width:740px;margin:10vh auto 0;padding:32px}h1{font-size:32px;letter-spacing:-1px;margin:10px 0}p{color:#61766e}code{font:13px/1.9 ui-monospace,monospace;white-space:pre-wrap}.box{background:white;border:1px solid #dce5e1;border-radius:12px;padding:22px;margin:24px 0}.tag{color:#235c4b;font-size:12px;letter-spacing:2px}#message{padding:10px 24px;background:#edf5ef;color:#235c4b;border-bottom:1px solid #dce5e1;white-space:pre-wrap}#message.error{background:#fdf0eb;color:#9c342e}#message.pending{background:#fbf4e7;color:#835d2c}#message:empty{display:none}#report{display:block;border:0;width:100%;height:calc(100dvh - 122px);background:white}[hidden]{display:none!important}#batch{max-width:65vw;overflow-wrap:anywhere}.actions{display:flex;gap:10px;align-items:center}.visually-hidden{position:absolute;width:1px;height:1px;clip-path:inset(50%);overflow:hidden}@media(max-width:600px){header{padding:12px;align-items:flex-start}#batch{max-width:50vw}#home{margin:3vh auto;padding:20px}.actions{flex-wrap:wrap}.pick{padding:8px 12px}h1{font-size:26px}}
+#location-bar{padding:8px 24px;background:#fff;border-bottom:1px solid #dce5e1;font-size:12px;color:#61766e}#location-row{display:flex;gap:8px;align-items:center}#viewer-directory{flex:1;min-width:0;padding:6px 8px;border:1px solid #dce5e1;border-radius:6px;color:#456157;background:#f8faf9;font:12px ui-monospace,monospace}#copy-directory{padding:5px 10px;white-space:nowrap}#path-status{margin-left:8px}#report{height:calc(100dvh - 205px)}@media(max-width:600px){#location-bar{padding:8px 12px}header{flex-wrap:wrap}#batch{max-width:100%}.actions{width:100%}}
+body:has(#report:not([hidden])){height:100dvh;display:flex;flex-direction:column;overflow:hidden}body:has(#report:not([hidden]))>header,body:has(#report:not([hidden]))>#location-bar,body:has(#report:not([hidden]))>#message{flex-shrink:0}body:has(#report:not([hidden]))>#report{flex:1;min-height:0;height:0}
+</style>
+</head>
+<body>
+<header><div id="batch"><strong>GagaSort · 质量报告</strong><small>固定查看器 · 离线读取报告文件夹</small></div><div class="actions"><label class="pick">选择报告文件夹<input id="folder" class="visually-hidden" type="file" webkitdirectory multiple></label><button id="clear" type="button" hidden>关闭报告</button></div></header>
+<section id="location-bar" aria-label="查看器所在目录"><div id="location-row"><label for="viewer-directory">当前目录</label><input id="viewer-directory" readonly aria-label="查看报告 HTML 所在目录"><button id="copy-directory" type="button">复制当前目录</button></div><div>浏览器会记住上次选择的位置，无法强制从当前目录打开。Mac：复制目录后，在选择窗口按 ⌘⇧G 粘贴，再选择时间戳文件夹。<span id="path-status" role="status" aria-live="polite"></span></div></section>
+<div id="message" role="status" aria-live="polite"></div>
+<main id="home"><span class="tag">PORTABLE REPORT</span><h1>选一份报告，直接看结果。</h1><p>打开时间戳文件夹，即可查看检查范围、Bug、复现步骤和关卡图片。查看与导出无需服务；更新飞书表头和提单使用本机飞书连接。</p><div class="box"><strong>请选择包含以下内容的文件夹</strong><pre><code>20261029-155021/
+├── report.md    检查结论、明细和关键证据
+├── bugs.csv     完整 Bug 列表，保留空列
+└── images/      关卡图片</code></pre><p>一个查看器可反复切换不同批次。点“更新表格”粘贴飞书 URL 读取表头，内容自动映射；检查预览后可提单，也可导出当前表头的 CSV。MD 可直接交给 Codex 分析。</p></div><p>优先使用 Chrome 或 Edge。目录内缺文件、内容不匹配时，会在这里明确提示。</p></main>
+<iframe id="report" title="本批次质量报告" sandbox="allow-scripts allow-same-origin allow-downloads allow-modals allow-forms" hidden></iframe>
+<script id="report-template" type="application/json">__REPORT_TEMPLATE__</script>
+<script>
+'use strict';
+const $=id=>document.getElementById(id),template=JSON.parse($('report-template').textContent);
+function viewerDirectory(href){
+ const url=new URL('.',href);if(url.protocol!=='file:')return '';
+ let path=decodeURIComponent(url.pathname);if(/^\/[a-zA-Z]:\//.test(path))path=path.slice(1);
+ return url.hostname?'//'+url.hostname+path:path;
+}
+const directory=viewerDirectory(location.href);$('viewer-directory').value=directory;
+if(!directory){$('copy-directory').disabled=true;$('path-status').textContent='请下载查看器并在本地打开。'}
+$('copy-directory').addEventListener('click',async()=>{
+ try{await navigator.clipboard.writeText(directory);$('path-status').textContent='已复制当前目录。'}
+ catch{$('viewer-directory').focus();$('viewer-directory').select();$('path-status').textContent='浏览器未允许自动复制，路径已选中，请按 ⌘C / Ctrl+C。'}
+});
+let generation=0,urls=[];
+const MAX_MD=32*1024*1024,MAX_CSV=8*1024*1024;
+function fail(message){throw new Error(message)}
+function state(message,tone=''){$('message').textContent=message;$('message').className=tone}
+function safePath(path){return typeof path==='string'&&path&&!path.startsWith('/')&&!path.includes('\\')&&!path.includes(':')&&path.split('/').every(p=>p&&p!=='.'&&p!=='..')}
+async function hash(buffer){const value=await crypto.subtle.digest('SHA-256',buffer);return Array.from(new Uint8Array(value),b=>b.toString(16).padStart(2,'0')).join('')}
+function parseCsv(text){
+ text=text.replace(/^\uFEFF/,'');const rows=[];let row=[],field='',quoted=false,closed=false;
+ for(let i=0;i<text.length;i++){const c=text[i];if(quoted){if(c==='"'){if(text[i+1]==='"'){field+='"';i++}else{quoted=false;closed=true}}else field+=c;continue}
+  if(c==='"'){if(field||closed)fail('CSV 引号格式不正确');quoted=true}
+  else if(c===','){row.push(field);field='';closed=false}
+  else if(c==='\n'||c==='\r'){if(c==='\r'&&text[i+1]==='\n')i++;row.push(field);rows.push(row);row=[];field='';closed=false}
+  else{if(closed)fail('CSV 关闭引号后存在非法内容');field+=c}
+ }
+ if(quoted)fail('CSV 引号未闭合');if(field||row.length||closed){row.push(field);rows.push(row)}return rows;
+}
+function validateView(p){
+ if(p.format!=='gagasort-report-v1'||!p.view||!p.csv||!Array.isArray(p.images)||!p.evidence_notes)fail('report.md 数据格式不受支持');
+ const d=p.view,b=d.bug_register;
+ if(!d.baseline?.run_id||!d.baseline?.head||!d.presentation||!Array.isArray(d.features)||!Array.isArray(d.issues)||!Array.isArray(d.config_groups)||!d.level_audit||!d.runs||!d.module_summaries||!b||!Array.isArray(b.rows)||!Array.isArray(b.headers))fail('report.md 检查明细不完整');
+ if(!Array.isArray(p.csv.ids)||!Array.isArray(p.csv.headers)||JSON.stringify(p.csv.headers)!==JSON.stringify(b.headers)||b.headers.some(x=>typeof x!=='string')||new Set(b.headers).size!==b.headers.length||!b.headers.includes('缺陷描述'))fail('CSV 表头定义不一致');
+ const ids=b.rows.map(r=>r.id);if(JSON.stringify(ids)!==JSON.stringify(p.csv.ids)||new Set(ids).size!==ids.length)fail('Bug 编号不一致或重复');
+ const confirmed=d.issues.filter(i=>i.confirmed).map(i=>i.id).sort();if(JSON.stringify([...ids].sort())!==JSON.stringify(confirmed))fail('已确认问题与 CSV 列表不一致');
+ for(const c of ['玩法','关卡','系统','配置','埋点'])if(!d.module_summaries[c])fail('缺少模块结论：'+c);
+ for(const r of b.rows)if(!r.detail||!r.detail.title||!r.detail.cause||!Array.isArray(r.detail.steps))fail('Bug 缺少详情或步骤：'+r.id);
+ const paths=p.images.map(i=>i.path);if(new Set(paths).size!==paths.length)fail('图片清单含重复路径');
+ for(const i of p.images)if(!safePath(i.path)||!i.path.startsWith('images/')||!['image/png','image/jpeg','image/webp'].includes(i.mime))fail('图片清单路径或格式无效');
+ for(const group of ['risks','samples','anomalies'])for(const item of d.level_audit[group]||[])if(!paths.includes(item.image))fail('图片关联缺失：'+item.image);
+ return d;
+}
+function revoke(list){for(const url of list)URL.revokeObjectURL(url)}
+function closeReport(){generation++;$('report').removeAttribute('srcdoc');$('report').hidden=true;$('home').hidden=false;$('clear').hidden=true;revoke(urls);urls=[];$('folder').value='';$('batch').innerHTML='<strong>GagaSort · 质量报告</strong><small>固定查看器 · 离线读取报告文件夹</small>';state('')}
+$('clear').addEventListener('click',closeReport);
+$('folder').addEventListener('change',async event=>{
+ const ticket=++generation,candidateUrls=[];state('正在读取并校验 MD、CSV 和图片…','pending');
+ try{
+  const files=new Map();let root='';
+  for(const file of event.target.files){const parts=file.webkitRelativePath.split('/');const current=parts.shift();if(!root)root=current;if(root!==current)fail('请选择单个报告文件夹');const path=parts.join('/');if(!safePath(path)||files.has(path))fail('目录含重复或非法路径');files.set(path,file)}
+  if(!files.has('report.md')||!files.has('bugs.csv'))fail('请选择时间戳文件夹：根目录必须同时包含 report.md 和 bugs.csv。');
+  if(files.get('report.md').size>MAX_MD||files.get('bugs.csv').size>MAX_CSV)fail('报告文本过大，请检查是否混入原始日志');
+  const md=await files.get('report.md').text(),blocks=[...md.matchAll(/^```gagasort-report-v1\r?\n([\s\S]*?)\r?\n```[ \t]*$/gm)];
+  if(blocks.length!==1)fail('report.md 缺少唯一的查看器数据区块，文件可能不完整');
+  const p=JSON.parse(blocks[0][1]),d=validateView(p),csvFile=files.get('bugs.csv');
+  if(p.csv.path!=='bugs.csv'||csvFile.size!==p.csv.bytes||await hash(await csvFile.arrayBuffer())!==p.csv.sha256)fail('bugs.csv 与 report.md 不属于同一份报告或文件已被修改，请重新导出');
+  const parsed=parseCsv(await csvFile.text()),headers=parsed.shift();
+  if(JSON.stringify(headers)!==JSON.stringify(p.csv.headers)||parsed.length!==p.csv.ids.length)fail('CSV 表头或 Bug 数量不一致');
+  const description=headers.indexOf('缺陷描述');
+  parsed.forEach((row,i)=>{if(row.length!==headers.length||!row[description].split('\n')[0].includes(p.csv.ids[i]))fail('CSV 列数或 Bug 编号顺序不一致');d.bug_register.rows[i].fields=Object.fromEntries(headers.map((h,k)=>[h,row[k]]))});
+  d.assets=Object.create(null);
+  for(const [path,note]of Object.entries(p.evidence_notes)){if(!safePath(path)||typeof note.text!=='string'||await hash(new TextEncoder().encode(note.text))!==note.sha256)fail('关键证据摘录校验失败：'+path);d.assets[path]=note}
+  for(const image of p.images){const file=files.get(image.path);if(!file)fail('缺少关卡图片：'+image.path);if(file.size!==image.bytes||file.size>10*1024*1024||await hash(await file.arrayBuffer())!==image.sha256)fail('关卡图片不匹配：'+image.path);const url=URL.createObjectURL(new Blob([await file.arrayBuffer()],{type:image.mime}));candidateUrls.push(url);d.assets[image.path]={...image,url}}
+  d.feishu_authorized=false;d.bug_register.csv=await csvFile.text();
+  if(ticket!==generation){revoke(candidateUrls);return}
+  const payload=JSON.stringify(d).replace(/</g,'\\u003c');
+  const previous=urls;urls=candidateUrls;
+  $('report').srcdoc=template.replace('__PAYLOAD__',()=>payload);$('report').hidden=false;$('home').hidden=true;$('clear').hidden=false;
+  $('batch').replaceChildren();const title=document.createElement('strong');title.textContent=root;const sub=document.createElement('small');sub.textContent=`${d.features.length} 项功能 · ${parsed.length} 条 Bug · ${p.images.length} 张图`;$('batch').append(title,sub);
+  state(p.notice);setTimeout(()=>revoke(previous),1000);
+ }catch(error){revoke(candidateUrls);if(ticket===generation)state('加载失败：'+error.message+(!$('report').hidden?'。当前仍显示上一份有效报告。':''),'error')}
+ finally{if(ticket===generation)$('folder').value=''}
+});
+</script>
+</body>
+</html>

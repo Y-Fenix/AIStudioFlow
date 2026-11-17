@@ -39,7 +39,7 @@ class NodeSettingsTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'后台操作'):
             self.store.save_node_skill(self.project,self.task,0,'规则',task['revision'])
 
-    def test_local_skills_are_full_defaults_and_imports_still_override(self):
+    def test_team_defaults_are_portable_and_explicit_imports_still_override(self):
         from unittest.mock import patch
         import hashlib
         from server.node_skills import defaults
@@ -49,24 +49,25 @@ class NodeSettingsTests(unittest.TestCase):
                 text='---\nname: '+name+'\n---\n完整本地规则-'+str(stage)
                 path.write_text(text)
                 value=defaults()[str(stage)]
-                self.assertEqual(value['content'],text)
-                self.assertEqual(value['name'],name)
-                self.assertEqual(value['source_path'],str(path.resolve()))
-                self.assertEqual(value['source_kind'],'local')
-                self.assertEqual(value['sha256'],hashlib.sha256(text.encode()).hexdigest())
+                self.assertNotEqual(value['content'],text)
+                self.assertNotEqual(value['source_path'],str(path.resolve()))
+                self.assertEqual(value['source_kind'],'bundled')
+                self.assertEqual(value['content'],Path(value['source_path']).read_text())
+                self.assertEqual(value['sha256'],hashlib.sha256(value['content'].encode()).hexdigest())
+                self.assertTrue(value['upstream_sources'])
             task=self.store.task(self.project,self.task)
             updated=self.store.save_node_skill(self.project,self.task,1,'用户替换规则',task['revision'])
             self.assertEqual(updated['node_skills']['1']['content'],'用户替换规则')
             self.assertEqual(updated['node_skills']['0']['content'],task['node_skills']['0']['content'])
-            new=self.store.create_task(self.project,'读取新的本机默认')
+            new=self.store.create_task(self.project,'读取团队内置默认')
             self.assertEqual(new['node_skills']['0']['content'],defaults()['0']['content'])
 
-    def test_missing_local_skills_use_explicit_full_bundled_copies(self):
+    def test_missing_local_skills_do_not_change_the_team_defaults(self):
         from unittest.mock import patch
         from server.node_skills import defaults
         with tempfile.TemporaryDirectory() as folder,patch.dict('os.environ',{'CODEX_HOME':folder}):
             skills=defaults()
-            for stage,name in [('0','TEST_Test_Case'),('1','TEST_Test_Codetest')]:
+            for stage,name in [('0','qa-plan + test-scenarios · 用例'),('1','test-evidence-review + intended-vs-implemented · 执行')]:
                 value=skills[stage]
                 self.assertEqual(value['name'],name)
                 self.assertEqual(value['source_kind'],'bundled')

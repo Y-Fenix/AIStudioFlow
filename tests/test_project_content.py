@@ -55,7 +55,7 @@ class ProjectContentTests(unittest.TestCase):
     def test_stale_revision_and_active_department_disable_are_rejected(self):
         self.add()
         with self.assertRaisesRegex(ValueError,'版本'):self.service.change(self.studio,self.project,{'revision':0,'action':'create','department':'product','kind':'note','title':'过期','body':'旧'})
-        with self.store.connection() as db:db.execute("INSERT INTO department_jobs VALUES('active',?,?,'product:0','local',0,'running',NULL,NULL,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",(self.studio,self.project))
+        with self.store.connection() as db:db.execute("INSERT INTO department_jobs (id,studio_id,project_id,node,actor,revision,status,result,error,created_at,updated_at) VALUES('active',?,?,'product:0','local',0,'running',NULL,NULL,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",(self.studio,self.project))
         with self.assertRaisesRegex(ValueError,'任务'):self.service.change(self.studio,self.project,{'revision':1,'action':'disable','department':'product'})
 
     def test_create_cannot_hide_defaults_and_create_grant_can_restore_hidden_default(self):

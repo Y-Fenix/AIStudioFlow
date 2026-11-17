@@ -4,6 +4,7 @@
 *.sqlite-*
 *.db
 team-auth.json
+feishu-notifications.json
 ai-model-custom.json
 .env
 .env.*

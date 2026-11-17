@@ -1,0 +1,994 @@
+{
+  "contract_version": "gagasort-tracking-v1",
+  "source_file": "GagaSort 埋点.xlsx",
+  "source_sha256": "35c588165b818d84ca8c1131742dab91b442a6f369c4cb3b92f2b62505528978",
+  "event_count": 26,
+  "property_count": 115,
+  "events": [
+    {
+      "event_name": "ta_app_start",
+      "event_label": "sdk自采集事件",
+      "trigger": "游戏启动",
+      "properties": []
+    },
+    {
+      "event_name": "ta_app_install",
+      "event_label": "sdk自采集事件",
+      "trigger": "游戏安装",
+      "properties": []
+    },
+    {
+      "event_name": "ta_app_end",
+      "event_label": "sdk自采集事件",
+      "trigger": "游戏登出",
+      "properties": [
+        {
+          "name": "#duration",
+          "type": "数值",
+          "description": "",
+          "remark1": "游戏登出时记录，结束计时（客户端开启自动采集后，即可采集）",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "event_name": "level_start",
+      "event_label": "关卡点位",
+      "trigger": "本局开始",
+      "properties": [
+        {
+          "name": "from",
+          "type": "字符串",
+          "description": "关卡开启前场景",
+          "remark1": "重试：replay 从上一关胜利场景进入：victorystart 主页进入：homepage",
+          "remark": ""
+        },
+        {
+          "name": "today_streak",
+          "type": "数值",
+          "description": "本关开始时的今日连胜数",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "level_type_sub",
+          "type": "字符串",
+          "description": "关卡子类型，Normal、Hard、Extra_hard",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "capacity_offset",
+          "type": "数值",
+          "description": "本关因动态难度产生的容量偏移值",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "level_capacity",
+          "type": "数值",
+          "description": "关卡的初始容量（含动态难度，不含道具加成）",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "add_capacity_type",
+          "type": "数值",
+          "description": "额外容量激活类型",
+          "remark1": "0-无增益 1-type1增益资格 2-type2增益资格",
+          "remark": ""
+        },
+        {
+          "name": "return_capacity",
+          "type": "数值",
+          "description": "回流容量奖励",
+          "remark1": "",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "event_name": "level_lose",
+      "event_label": "关卡点位",
+      "trigger": "关卡失败",
+      "properties": [
+        {
+          "name": "lose_reason",
+          "type": "字符串",
+          "description": "失败原因",
+          "remark1": "空间不足",
+          "remark": ""
+        },
+        {
+          "name": "life_type",
+          "type": "字符串",
+          "description": "无限体力、扣除体力",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "event_in",
+          "type": "字符串",
+          "description": "上报当前有连胜状态的活动名称",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "level_type_sub",
+          "type": "字符串",
+          "description": "关卡子类型，Normal、Hard、Extra_hard",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "capacity_offset",
+          "type": "数值",
+          "description": "本关因动态难度产生的容量偏移值",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "today_streak",
+          "type": "数值",
+          "description": "本关开始时的今日连胜数",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "level_capacity",
+          "type": "数值",
+          "description": "关卡的初始容量（含动态难度，不含道具加成）",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "add_capacity_type",
+          "type": "数值",
+          "description": "额外容量收益类型",
+          "remark1": "0-无增益 1-type1增益资格 2-type2增益资格",
+          "remark": ""
+        },
+        {
+          "name": "add_capacity",
+          "type": "数值",
+          "description": "额外容量（默认0，激活时计数）",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "return_capacity",
+          "type": "数值",
+          "description": "回流容量奖励",
+          "remark1": "",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "event_name": "level_revive",
+      "event_label": "关卡点位",
+      "trigger": "关卡复活",
+      "properties": [
+        {
+          "name": "replay_times",
+          "type": "数值",
+          "description": "该关内，重试次数，同一关反复失败累计上报，直到跳过或者通关",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "level_shuffle_used",
+          "type": "数值",
+          "description": "该局内，玩家使用了道具shuffle的次数",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "life_type",
+          "type": "字符串",
+          "description": "无限体力、扣除体力",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "event_in",
+          "type": "字符串",
+          "description": "上报当前有连胜状态的活动名称",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "level_capacity_used",
+          "type": "数值",
+          "description": "该局内，玩家使用+2空间道具的次数",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "level_remove_used",
+          "type": "数值",
+          "description": "该局内，玩家使用移除一种颜色鸭子道具的次数",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "level_duration",
+          "type": "数值",
+          "description": "该局内，关卡时长，单位s",
+          "remark1": "与所有工作室的定义保持一致！",
+          "remark": ""
+        },
+        {
+          "name": "level_progress_start",
+          "type": "数值",
+          "description": "该局需达成的鸭子颜色数，记录1,2,3,4,5,6等",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "level_progress",
+          "type": "数值",
+          "description": "玩家失败时达成的鸭子颜色数，记录1,2,3,4,5,6等",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "revive_times",
+          "type": "数值",
+          "description": "该局内，玩家累计复活次数",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "level_type_sub",
+          "type": "字符串",
+          "description": "关卡子类型，Normal、Hard、Extra_hard",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "capacity_offset",
+          "type": "数值",
+          "description": "本关因动态难度产生的容量偏移值",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "today_streak",
+          "type": "数值",
+          "description": "本关开始时的今日连胜数",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "level_capacity",
+          "type": "数值",
+          "description": "关卡的初始容量（含动态难度，不含道具加成）",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "add_capacity_type",
+          "type": "数值",
+          "description": "额外容量收益类型",
+          "remark1": "0-无增益 1-type1增益资格 2-type2增益资格",
+          "remark": ""
+        },
+        {
+          "name": "add_capacity",
+          "type": "数值",
+          "description": "额外容量（默认0，激活时计数）",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "return_capacity",
+          "type": "数值",
+          "description": "回流容量奖励",
+          "remark1": "",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "event_name": "level_end",
+      "event_label": "关卡点位",
+      "trigger": "关卡结束",
+      "properties": [
+        {
+          "name": "level_end_reason",
+          "type": "字符串",
+          "description": "关卡结束原因，success 或 quit",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "level_type_sub",
+          "type": "字符串",
+          "description": "关卡子类型，Normal、Hard、Extra_hard",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "life_type",
+          "type": "字符串",
+          "description": "无限体力、扣除体力",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "event_in",
+          "type": "字符串",
+          "description": "上报当前有连胜状态的活动名称",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "capacity_offset",
+          "type": "数值",
+          "description": "本关因动态难度产生的容量偏移值",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "today_streak",
+          "type": "数值",
+          "description": "本关开始时的今日连胜数",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "replay_times",
+          "type": "数值",
+          "description": "该关内，重试次数，同一关反复失败累计上报，直到跳过或者通关",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "level_shuffle_used",
+          "type": "数值",
+          "description": "该局内，玩家使用了道具shuffle的次数",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "level_capacity_used",
+          "type": "数值",
+          "description": "该局内，玩家使用+2空间道具的次数",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "level_remove_used",
+          "type": "数值",
+          "description": "该局内，玩家使用移除一种颜色鸭子道具的次数",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "level_duration",
+          "type": "数值",
+          "description": "该局内，关卡时长，单位s",
+          "remark1": "与所有工作室的定义保持一致！",
+          "remark": ""
+        },
+        {
+          "name": "level_progress_start",
+          "type": "数值",
+          "description": "该局需达成的鸭子颜色数，记录1,2,3,4,5,6等",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "level_progress",
+          "type": "数值",
+          "description": "玩家结束对局时达成的鸭子颜色数，记录1,2,3,4,5,6等",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "revive_times",
+          "type": "数值",
+          "description": "该局内，玩家累计复活次数",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "level_capacity",
+          "type": "数值",
+          "description": "关卡的初始容量（含动态难度，不含道具加成）",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "add_capacity_type",
+          "type": "数值",
+          "description": "额外容量收益类型",
+          "remark1": "0-无增益 1-type1增益资格 2-type2增益资格",
+          "remark": ""
+        },
+        {
+          "name": "add_capacity",
+          "type": "数值",
+          "description": "额外容量（默认0，激活时计数）",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "return_capacity",
+          "type": "数值",
+          "description": "回流容量奖励",
+          "remark1": "",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "event_name": "item_get",
+      "event_label": "道具资源点位",
+      "trigger": "获得道具",
+      "properties": [
+        {
+          "name": "item_id",
+          "type": "数值",
+          "description": "道具id",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "item_type",
+          "type": "字符串",
+          "description": "道具类型",
+          "remark1": "shuffle、capacity、remove",
+          "remark": ""
+        },
+        {
+          "name": "item_scene",
+          "type": "字符串",
+          "description": "道具获取来源",
+          "remark1": "新手赠送 局内金币购买 去广告礼包 礼包（礼包名称，同一类型礼包所有地区统一）",
+          "remark": ""
+        },
+        {
+          "name": "item_count_get",
+          "type": "数值",
+          "description": "单次获得数量",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "item_count_now",
+          "type": "数值",
+          "description": "当前该类型道具数量，当前事件更新后的数量",
+          "remark1": "存量",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "event_name": "item_use",
+      "event_label": "道具资源点位",
+      "trigger": "使用道具",
+      "properties": [
+        {
+          "name": "item_id",
+          "type": "数值",
+          "description": "道具id",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "item_type",
+          "type": "字符串",
+          "description": "道具类型",
+          "remark1": "shuffle、capacity、remove",
+          "remark": ""
+        },
+        {
+          "name": "item_scene",
+          "type": "字符串",
+          "description": "道具使用场景",
+          "remark1": "主动使用",
+          "remark": ""
+        },
+        {
+          "name": "item_count_use",
+          "type": "数值",
+          "description": "使用道具数量",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "item_count_now",
+          "type": "数值",
+          "description": "当前该类型道具数量，当前事件更新后的数量",
+          "remark1": "存量",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "event_name": "life_change",
+      "event_label": "体力日志",
+      "trigger": "体力变化",
+      "properties": [
+        {
+          "name": "life_action",
+          "type": "数值",
+          "description": "变化类型",
+          "remark1": "1-增加 0-减少",
+          "remark": ""
+        },
+        {
+          "name": "life_reason",
+          "type": "字符串",
+          "description": "变化原因",
+          "remark1": "增加：礼包产出/激励/金币购买等，系统默认添加不用记录 减少：关卡失败 体力不足：弹出体力不足提醒时上报1条日志",
+          "remark": ""
+        },
+        {
+          "name": "life_action_num",
+          "type": "数值",
+          "description": "变化数量",
+          "remark1": "变化数量",
+          "remark": ""
+        },
+        {
+          "name": "life_action_before",
+          "type": "数值",
+          "description": "变化前数量",
+          "remark1": "变化前数量",
+          "remark": ""
+        },
+        {
+          "name": "life_action_after",
+          "type": "数值",
+          "description": "变化后数量",
+          "remark1": "变化后数量",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "event_name": "currency",
+      "event_label": "货币日志",
+      "trigger": "货币产出或消耗时记录",
+      "properties": [
+        {
+          "name": "currency_type",
+          "type": "字符串",
+          "description": "货币类型",
+          "remark1": "金币",
+          "remark": ""
+        },
+        {
+          "name": "currency_action",
+          "type": "数值",
+          "description": "货币增加或减少",
+          "remark1": "1-增加 0-减少",
+          "remark": ""
+        },
+        {
+          "name": "currency_reason",
+          "type": "字符串",
+          "description": "货币变化原因",
+          "remark1": "产出-通关奖励/商城购买/礼包/每日任务/激励广告/等等 消耗-购买道具/复活/恢复体力等等",
+          "remark": "礼包（礼包名称，同一类型礼包所有地区统一）"
+        },
+        {
+          "name": "currency_subreason",
+          "type": "字符串",
+          "description": "货币变化二级原因 记录在一级原因下，细分的产出或消耗场景",
+          "remark1": "产出-礼包：商城礼包（金币礼包，免广告礼包等等具体礼包） 产出-激励：商城免费金币 产出-关卡：通关单倍/看激励3倍 消耗-道具：记录具体购买的道具内容，如购买shuffle、购买capacity、购买remove",
+          "remark": ""
+        },
+        {
+          "name": "action_num",
+          "type": "数值",
+          "description": "变化数量",
+          "remark1": "货币增加或减少的数量，增加为正，减少为负",
+          "remark": ""
+        },
+        {
+          "name": "currency_action_before",
+          "type": "数值",
+          "description": "变化前货币数量",
+          "remark1": "",
+          "remark": ""
+        },
+        {
+          "name": "currency_action_after",
+          "type": "数值",
+          "description": "变化后货币数量",
+          "remark1": "",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "event_name": "newbee_steps",
+      "event_label": "新手引导",
+      "trigger": "选择新手引导模式",
+      "properties": [
+        {
+          "name": "step",
+          "type": "字符串",
+          "description": "记录每一步引导完成后上报",
+          "remark1": "step1:点击引导 step2......",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "event_name": "reward_page_show",
+      "event_label": "激励广告",
+      "trigger": "激励广告页面曝光",
+      "properties": [
+        {
+          "name": "reward_scene",
+          "type": "字符串",
+          "description": "调用场景",
+          "remark1": "恢复体力 通关奖励翻倍 商城免费金币",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "event_name": "reward_ad_click",
+      "event_label": "激励广告点击",
+      "trigger": "点击播放按钮",
+      "properties": [
+        {
+          "name": "reward_scene",
+          "type": "字符串",
+          "description": "调用场景",
+          "remark1": "恢复体力 通关奖励翻倍 商城免费金币",
+          "remark": ""
+        },
+        {
+          "name": "click_end",
+          "type": "字符串",
+          "description": "上报点击后的结果",
+          "remark1": "1.激励广告播放成功 2.播放失败",
+          "remark": "播放失败是指点击了没有填充好广告的情况导致无法播放"
+        }
+      ]
+    },
+    {
+      "event_name": "interstital_ad_monitor",
+      "event_label": "插屏广告监控",
+      "trigger": "监控插屏广告播放情况",
+      "properties": [
+        {
+          "name": "start_end",
+          "type": "字符串",
+          "description": "上报插屏该播放时的基本情况",
+          "remark1": "1.插屏播放条件达到 2.插屏正常播放 3.播放失败",
+          "remark": "播放失败是指触发播放条件但没有填充好广告的情况导致无法播放"
+        }
+      ]
+    },
+    {
+      "event_name": "review_page",
+      "event_label": "评论引导",
+      "trigger": "评论引导主动弹出界面上报",
+      "properties": [
+        {
+          "name": "page_show",
+          "type": "字符串",
+          "description": "弹出评星浮层时",
+          "remark1": "弹出评星浮层时",
+          "remark": ""
+        },
+        {
+          "name": "page_click",
+          "type": "字符串",
+          "description": "点击浮层按钮时",
+          "remark1": "点击浮层按钮时",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "event_name": "login_monitor",
+      "event_label": "登录监控",
+      "trigger": "成功登录到游戏界面后第一时间上报",
+      "properties": [
+        {
+          "name": "state",
+          "type": "字符串",
+          "description": "with_net",
+          "remark1": "首次登录成功，",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "event_name": "click",
+      "event_label": "按钮点击",
+      "trigger": "关键按钮被点击时",
+      "properties": [
+        {
+          "name": "info",
+          "type": "字符串",
+          "description": "记录按钮点击名称",
+          "remark1": "免广告浮层点购买 免广告全屏点购买 恢复购买点击 商城商品点击",
+          "remark": ""
+        },
+        {
+          "name": "sub_info",
+          "type": "字符串",
+          "description": "附加信息",
+          "remark1": "商店商品点击：记录具体的商品名称",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "event_name": "AdsLoading",
+      "event_label": "广告请求失败",
+      "trigger": "无广告填充时根据弹窗内容上报",
+      "properties": [
+        {
+          "name": "info",
+          "type": "字符串",
+          "description": "记录3个弹窗名字",
+          "remark1": "",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "event_name": "payrestore",
+      "event_label": "支付购买恢复",
+      "trigger": "玩家恢复购买的内容时上报",
+      "properties": [
+        {
+          "name": "info",
+          "type": "字符串",
+          "description": "恢复购买的内容",
+          "remark1": "",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "event_name": "purchase_pagearise",
+      "event_label": "付费内容页面展示",
+      "trigger": "付费内购内容页面被打开时",
+      "properties": [
+        {
+          "name": "purchase_scene",
+          "type": "字符串",
+          "description": "记录所有付费相关页面曝光（与支付的purchase_scene保持一致）",
+          "remark1": "主页去广告弹窗 商城 探险特惠 1+2礼包",
+          "remark": ""
+        },
+        {
+          "name": "purchase_scene_sub",
+          "type": "字符串",
+          "description": "支付二级场景",
+          "remark1": "",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "event_name": "activity_task",
+      "event_label": "活动任务",
+      "trigger": "任意活动任务开启、结束、完成或领取时",
+      "properties": [
+        {
+          "name": "activity_name",
+          "type": "字符串",
+          "description": "活动名称（上报英文）",
+          "remark1": "journey：旅程 color streak：连胜活动 weekpass：闯关活动 climb：爬楼活动 pass：通行证 weekly contest：10人周竞赛 balloon：气球活动 Lava：单阶段Lava multi_lava：多阶段Lava streak group：连胜分组排行 login reward：每日登录奖励 champion league：冠军联赛 stage1000_reward：逢千关奖励",
+          "remark": ""
+        },
+        {
+          "name": "skin_id",
+          "type": "字符串",
+          "description": "换皮活动名称",
+          "remark1": "Halloween：万圣节活动（仅活动名称修改，其余逻辑延续color streak）",
+          "remark": ""
+        },
+        {
+          "name": "activity_id",
+          "type": "数值",
+          "description": "活动期数",
+          "remark1": "color streak：个人期数累加，1，2，3... weekpass：开启周周一日期，如20260918 climb：个人期数累加，1，2，3... pass：所有用户每期id唯一，该期首次上线日期，如20260918 weekly contest：开启周周一日期，如20260918 balloon：个人期数累加，1，2，3... Lava：个人期数累加，1，2，3... multi_lava：个人期数累加，1，2，3... streak group：开启日期，20260918 login reward：领取日期，20260918 champion league：结束日期，20260918",
+          "remark": ""
+        },
+        {
+          "name": "stage",
+          "type": "数值",
+          "description": "活动阶段",
+          "remark1": "balloon：活动阶段数 multi_lava：活动阶段数",
+          "remark": ""
+        },
+        {
+          "name": "task_id",
+          "type": "字符串",
+          "description": "任务id",
+          "remark1": "journey\\color streak\\weekpass\\climb\\Lava\\multi_lava：任务阶段 pass：除常规任务30个阶段外，循环宝箱任务编号从31起 weekly contest：低活跃、中活跃、高活跃、最高活跃 balloon：当前阶段需要猜的气球数量 streak group：低活跃、中活跃、高活跃、最高活跃 login reward：抽取到的RewardId champion league：正常奖励、低奖励 stage1000_reward：1000、2000、3000...",
+          "remark": ""
+        },
+        {
+          "name": "type",
+          "type": "字符串",
+          "description": "类型，记录任务状态",
+          "remark1": "journey：任务完成、奖励领取 color streak：finish weekpass：任务完成、奖励领取 climb：任务完成、奖励领取 pass：任务完成、免费奖励领取、付费奖励领取 weekly contest：竞赛开始、竞赛结束、竞赛奖励领取 balloon：气球获取、奖励领取 Lava：任务开启、任务完成、任务失败 multi_lava：任务开启、任务完成、任务失败 streak group：任务开始、排名结算、奖励领取 login reward：免费领取 champion league：进入联赛、排名结算、奖励领取 stage1000_reward：奖励领取",
+          "remark": ""
+        },
+        {
+          "name": "end_rank",
+          "type": "数值",
+          "description": "最终排名",
+          "remark1": "weekly contest：1，2，3，4... streak group：1，2，3，4... champion league：1，2，3，4...",
+          "remark": ""
+        },
+        {
+          "name": "end_score",
+          "type": "数值",
+          "description": "最终分数",
+          "remark1": "weekly contest：10，50，78... streak group：10，50，78... champion league：10，50，78...",
+          "remark": ""
+        },
+        {
+          "name": "start_rank",
+          "type": "数值",
+          "description": "首次进入排行榜时，初始排名",
+          "remark1": "weekly contest：1，2，3，4... streak group：1，2，3，4... champion league：1，2，3，4...",
+          "remark": ""
+        },
+        {
+          "name": "start_gap_score",
+          "type": "数值",
+          "description": "首次进入排行榜时，与第一名分数差异",
+          "remark1": "weekly contest：10，50，78... streak group：10，50，78... champion league：10，50，78...",
+          "remark": ""
+        },
+        {
+          "name": "item_used",
+          "type": "数值",
+          "description": "道具使用数",
+          "remark1": "balloon：完成当前阶段气球使用数量",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "event_name": "return_reward_tier",
+      "event_label": "回流奖励",
+      "trigger": "新时间采样校验通过后冻结奖励档位",
+      "properties": [
+        {
+          "name": "return_id",
+          "type": "字符串",
+          "description": "回流奖励批次 ID",
+          "remark1": "用于串联档位、曝光和领取；线上按用户与 ID 去重",
+          "remark": "同候选正常生命周期一次；已有已校验候选再次进入不重复确认档位。"
+        },
+        {
+          "name": "return_tier",
+          "type": "数值",
+          "description": "冻结奖励档位",
+          "remark1": "1=低档；2=高档。阈值采用候选冻结配置",
+          "remark": ""
+        },
+        {
+          "name": "return_gap_seconds",
+          "type": "数值",
+          "description": "连续未游戏时长，单位秒",
+          "remark1": "候选首次返回 UTC 减离开 UTC；单位秒；只使用冻结候选区间",
+          "remark": ""
+        },
+        {
+          "name": "return_capacity",
+          "type": "数值",
+          "description": "本批次奖励容量",
+          "remark1": "该批次已冻结奖励容量增量；不是当前剩余容量",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "event_name": "return_reward_show",
+      "event_label": "回流奖励",
+      "trigger": "正式回流奖励弹窗成功打开并确认展示",
+      "properties": [
+        {
+          "name": "return_id",
+          "type": "字符串",
+          "description": "回流奖励批次 ID",
+          "remark1": "用于串联档位、曝光和领取；线上按用户与 ID 去重",
+          "remark": "页面加载失败、重复打开回执、GM 预览不计曝光。奖励此时已进入公共缓存。"
+        },
+        {
+          "name": "return_tier",
+          "type": "数值",
+          "description": "冻结奖励档位",
+          "remark1": "1=低档；2=高档。阈值采用候选冻结配置",
+          "remark": ""
+        },
+        {
+          "name": "return_gap_seconds",
+          "type": "数值",
+          "description": "连续未游戏时长，单位秒",
+          "remark1": "候选首次返回 UTC 减离开 UTC；单位秒；只使用冻结候选区间",
+          "remark": ""
+        },
+        {
+          "name": "return_capacity",
+          "type": "数值",
+          "description": "本批次奖励容量",
+          "remark1": "该批次已冻结奖励容量增量；不是当前剩余容量",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "event_name": "return_reward_claim",
+      "event_label": "回流奖励",
+      "trigger": "正式回流奖励页首次有效点击确认领取",
+      "properties": [
+        {
+          "name": "return_id",
+          "type": "字符串",
+          "description": "回流奖励批次 ID",
+          "remark1": "用于串联档位、曝光和领取；线上按用户与 ID 去重",
+          "remark": "领取按钮与背景确认共用入口；同次打开仅一次，飞行失败重试不重复；GM 预览不计。表示点击，不代表到账成功；金币/道具流水仍使用 return_reward 来源。"
+        },
+        {
+          "name": "return_tier",
+          "type": "数值",
+          "description": "冻结奖励档位",
+          "remark1": "1=低档；2=高档。阈值采用候选冻结配置",
+          "remark": ""
+        },
+        {
+          "name": "return_gap_seconds",
+          "type": "数值",
+          "description": "连续未游戏时长，单位秒",
+          "remark1": "候选首次返回 UTC 减离开 UTC；单位秒；只使用冻结候选区间",
+          "remark": ""
+        },
+        {
+          "name": "return_capacity",
+          "type": "数值",
+          "description": "本批次奖励容量",
+          "remark1": "该批次已冻结奖励容量增量；不是当前剩余容量",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "event_name": "user_tier",
+      "event_label": "分层快照",
+      "trigger": "触发某个活动/礼包等配置前的用户分层快照",
+      "properties": [
+        {
+          "name": "tier_name",
+          "type": "字符串",
+          "description": "活动、礼包名称（活动使用activity_name）",
+          "remark1": "weekpass：闯关礼包 chainpack：链式礼包 oneplustwo：1+2礼包 Halloween2026：节日礼包 reviveoffer：复活礼包 weekly contest：10人周竞赛 streak group：连胜分组排行",
+          "remark": ""
+        },
+        {
+          "name": "tier_id",
+          "type": "数值",
+          "description": "期数（活动使用activity_id）",
+          "remark1": "触发配置的日期，20260918",
+          "remark": ""
+        },
+        {
+          "name": "tier",
+          "type": "字符串",
+          "description": "分层档位（活动使用task_id，付费内容优先使用product_name）",
+          "remark1": "闯关礼包、1+2礼包、节日礼包、复活礼包：product_name 链式礼包：chainpack1、chainpack2、chainpack3、chainpack4 weekly contest：低活跃、中活跃、高活跃、最高活跃 streak group：低活跃、中活跃、高活跃、最高活跃",
+          "remark": ""
+        }
+      ]
+    }
+  ]
+}

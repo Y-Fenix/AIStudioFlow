@@ -3,6 +3,7 @@ import copy
 import hashlib
 import json
 import uuid
+from contextlib import nullcontext
 from server.studio_catalog import DEPARTMENTS
 from server.core.identity import user_id
 
@@ -22,8 +23,13 @@ def read_config(db, project, department):
     return (row['revision'],json.loads(row['nodes'])) if row else (0,defaults)
 
 
-def project_records(store, project, department=None):
-    with store.connection() as db:
+def testing_filter_merged(db, project):
+    """Only archived testing:3 is folded into attribution; IDs stay stable."""
+    return any(n['id']=='testing:3' and n['archived'] for n in read_config(db,project,'testing')[1])
+
+
+def project_records(store, project, department=None, *, connection=None):
+    with (nullcontext(connection) if connection is not None else store.connection()) as db:
         return [n for d in DEPARTMENTS if department is None or d['id']==department
                 for n in read_config(db,project,d['id'])[1]]
 

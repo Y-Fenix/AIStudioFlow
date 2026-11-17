@@ -1,5 +1,6 @@
 """队列操作的协作取消；独立进程组同时终止运行器及其子进程。"""
 import contextvars
+import logging
 import os
 import signal
 import subprocess
@@ -34,7 +35,23 @@ def _kill_group(process):
         os.killpg(process.pid, signal.SIGKILL)
     except ProcessLookupError:
         pass
-    process.communicate()
+    except OSError:
+        # macOS can reject signalling a process group even though the direct
+        # child is ours. Cleanup must never replace a retryable model error.
+        logging.getLogger(__name__).warning('Process-group cleanup denied; stopping direct child')
+        try:
+            process.kill()
+        except ProcessLookupError:
+            pass
+    try:
+        process.communicate(timeout=2)
+    except subprocess.TimeoutExpired:
+        # A descendant may retain a pipe. Do not turn cancellation into an
+        # unbounded wait; close only the handles belonging to this invocation.
+        for stream in (process.stdin, process.stdout, process.stderr):
+            if stream is not None and not stream.closed:
+                stream.close()
+        process.wait(timeout=2)
 
 
 def run(command, *, input=None, timeout=None, capture_output=False, check=False,
@@ -89,5 +106,8 @@ def run(command, *, input=None, timeout=None, capture_output=False, check=False,
             result.check_returncode()
         return result
     except BaseException:
-        _kill_group(process)
+        try:
+            _kill_group(process)
+        except (OSError, subprocess.TimeoutExpired):
+            logging.getLogger(__name__).warning('Subprocess cleanup incomplete; original failure preserved')
         raise

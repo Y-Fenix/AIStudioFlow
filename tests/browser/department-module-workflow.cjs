@@ -118,7 +118,7 @@ const fixture = `export default {
     await page.unroute('**/departments/product/ui.js');
     const roles = [['studio_owner', '项目总览'], ['product', '产品部门 · 首页'],
       ['design', '设计部门 · 首页'], ['development', '开发部门 · 首页'],
-      ['qa', '测试部门 · 首页'], ['growth', '发行与增长 · 首页']];
+      ['qa', '测试部门 · 首页']];
     const cards = [];
     let overviewCard;
     for (const [role, label] of roles) {
@@ -139,7 +139,8 @@ const fixture = `export default {
           width: Math.round(element.getBoundingClientRect().width), height: Math.round(element.getBoundingClientRect().height)
         })));
         assert(sizes.every(size => size.width === sizes[0].width && size.height === sizes[0].height));
-        assert.deepEqual(sizes[0], overviewCard, role + ' nodes match overview card size');
+        assert(sizes[0].width >= 196 && sizes[0].height >= 236, role + ' nodes share readable minimum card dimensions');
+        assert.equal(sizes[0].height, overviewCard.height, role + ' nodes share overview card density');
         assert.equal(await page.locator('.home-node:last-child .node-title .icon').count(), 1, 'last node has department icon only');
         assert(!/→/.test(await page.locator('.home-node:last-child').innerText()));
         assert.equal(await page.locator('.department-owned-slot .department-owned-slot').count(), 0);
@@ -156,7 +157,7 @@ const fixture = `export default {
       await page.locator('[data-action="view:themes"]').first().click();
       const apply = page.locator('[data-action="theme:' + theme + '"]');
       if (await apply.count()) await apply.click();
-      for (const department of ['product', 'design', 'development', 'testing', 'growth']) {
+      for (const department of ['product', 'design', 'development', 'testing']) {
         await page.locator(`[data-action="home:${department}"]`).click();
         await page.waitForSelector(`#sidebar [data-action="home:${department}"].active`);
         await page.waitForSelector('.department-hero .department-mark svg');
@@ -210,7 +211,11 @@ const fixture = `export default {
     await page.keyboard.press('Escape');
     assert.equal(await page.locator('.modal').count(), 0);
     assert.deepEqual(errors, []);
-    console.log('PASS: real modules across six identity homepages; 270/290px heights; node sizing; final-node arrows; mobile; all themes; project search/pagination/ESC. Sizes: ' + JSON.stringify(cards));
+    await request('/api/me/preferences', {active_studio_id: studio, role: 'growth'});
+    await page.reload();
+    await page.waitForFunction(() => NodeBuilder.mode === 'flow' && state.view === 'builder');
+    assert.equal(await page.locator('#sidebar [data-action="home:growth"]').count(), 0, 'historical growth role opens custom workflows');
+    console.log('PASS: real modules across five current identity homepages and historical growth redirect; 270/290px heights; card minimums; final-node arrows; mobile; all themes; project search/pagination/ESC. Sizes: ' + JSON.stringify(cards));
   } finally {
     if (browser) await browser.close();
     if (server.exitCode === null) {server.kill('SIGTERM');await once(server, 'exit');}

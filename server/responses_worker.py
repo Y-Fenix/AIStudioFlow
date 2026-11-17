@@ -16,7 +16,14 @@ def main():
                 while True:
                     line=response.readline()
                     if not line:break
-                    if args.protocol!='chat':out.write(line);continue
+                    if args.protocol!='chat':
+                        out.write(line)
+                        if line.startswith(b'data:'):
+                            try:event=json.loads(line[5:].strip())
+                            except (ValueError,UnicodeError):continue
+                            if isinstance(event,dict) and event.get('type') in ('response.completed','response.failed','response.incomplete','error'):
+                                return 0
+                        continue
                     if not line.startswith(b'data:'):continue
                     data=line[5:].strip()
                     if data==b'[DONE]':continue
@@ -32,6 +39,7 @@ def main():
                         if reason:
                             kind='response.completed' if reason=='stop' else 'response.incomplete'
                             out.write(('data: '+json.dumps({'type':kind,'response':{'status':'completed' if reason=='stop' else 'incomplete','output':[]}})+'\n\n').encode())
+                            return 0
     except urllib.error.HTTPError as exc:
         print(exc.code,flush=True);return 1
     except Exception:

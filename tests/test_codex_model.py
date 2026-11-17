@@ -11,6 +11,31 @@ class CodexModelTests(unittest.TestCase):
         override=patch.dict('os.environ',{'TESTFLOW_CODEX_TRANSPORT':'cli'})
         override.start();self.addCleanup(override.stop)
 
+    def test_retry_diagnostics_use_selected_model_and_effort(self):
+        from server.ai_models import selection_scope
+        from server.codex_model import GatewayFailure, diagnostic_scope
+        events = []
+        with selection_scope({'model': 'chosen-model', 'effort': 'medium', 'source': 'relay'}), diagnostic_scope(events.append), patch.object(CodexModel, '_request_json_once', side_effect=[GatewayFailure('temporary', retryable=True), {'ok': True}]):
+            self.assertEqual(CodexModel().request_json('fixture'), {'ok': True})
+        self.assertEqual(events[0]['requested_model'], 'chosen-model')
+        self.assertEqual(events[0]['effort'], 'medium')
+
+    def test_cli_completed_output_uses_the_same_strict_format_contract(self):
+        from server.model_output import ModelOutputError
+        for raw in ('```json\n{"ok":true}\n```', '{"private":"text",}'):
+            with self.subTest(raw=raw):
+                def run(command, **kwargs):
+                    Path(command[command.index('-o')+1]).write_text(raw)
+                    return type('Result', (), {'returncode': 0})()
+                with patch('server.codex_model.shutil.which', return_value='/bin/codex'), patch(
+                        'server.codex_model.run_process', side_effect=run):
+                    if raw.startswith('```'):
+                        self.assertEqual(CodexModel().request_json('JSON'), {'ok': True})
+                    else:
+                        with self.assertRaises(ModelOutputError) as failure:
+                            CodexModel().request_json('JSON')
+                        self.assertEqual(failure.exception.raw_text, raw)
+
     def test_connection_preserves_provider_without_loading_tools(self):
         with tempfile.TemporaryDirectory() as folder:
             Path(folder, 'config.toml').write_text('model="configured-model"\nmodel_provider="custom"\n[model_providers.custom]\nname="Custom"\nbase_url="https://example.test/v1"\nwire_api="responses"\nrequires_openai_auth=true\n[features]\nplugins=true\n[mcp_servers.private]\ncommand="private-tool"\n')

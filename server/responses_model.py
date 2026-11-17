@@ -4,6 +4,7 @@ from dataclasses import dataclass,field
 from pathlib import Path
 from urllib.parse import urlsplit
 from server.processes import run as run_process
+from server.model_output import parse_object, ModelOutputError
 
 @dataclass
 class Connection:
@@ -54,9 +55,15 @@ class Events:
             self.count+=1;kind=e.get('type');self.last=kind
             if kind in ('response.created','response.in_progress','response.output_item.added','response.output_text.delta','response.output_text.done','response.output_item.done','response.reasoning_summary_text.delta','response.reasoning_text.delta','response.completed'):
                 self.progress+=1
-            if kind=='response.output_text.delta':self.text+=e.get('delta','')
+            if kind=='response.output_text.delta':
+                delta=e.get('delta','')
+                if isinstance(delta,str):self.text+=delta
+                else:self.failed=True
             if len(self.text)>2000000:raise ValueError('模型返回内容过大')
-            if kind=='response.completed':self.completed=e.get('response')
+            if kind=='response.completed':
+                response=e.get('response')
+                if isinstance(response,dict):self.completed=response
+                else:self.failed=True
             if kind in ('error','response.failed','response.incomplete'):self.failed=True
 
 def request_json(connection,prompt,model,effort,timeout,callback):
@@ -105,11 +112,25 @@ def request_json(connection,prompt,model,effort,timeout,callback):
         if events.failed or not events.completed or events.completed.get('status')!='completed':
             emit('incomplete_response',response_status=(events.completed or {}).get('status'))
             raise GatewayFailure('模型服务返回未完成的响应，未保存为结果',retryable=True)
-        texts=[c.get('text','') for item in events.completed.get('output',[]) if item.get('type')=='message' and item.get('role')=='assistant'
-               for c in item.get('content',[]) if c.get('type')=='output_text']
+        texts=[]
+        try:
+            output_items=events.completed.get('output',[])
+            if not isinstance(output_items,list):raise ValueError()
+            for item in output_items:
+                if not isinstance(item,dict):raise ValueError()
+                if item.get('type')!='message' or item.get('role')!='assistant':continue
+                content=item.get('content',[])
+                if not isinstance(content,list):raise ValueError()
+                for part in content:
+                    if not isinstance(part,dict):raise ValueError()
+                    if part.get('type')=='output_text':
+                        if not isinstance(part.get('text'),str):raise ValueError()
+                        texts.append(part['text'])
+        except ValueError:
+            emit('incomplete_response')
+            raise GatewayFailure('模型服务返回的响应协议结构不合法，未保存为结果',retryable=True) from None
         text=''.join(texts) or events.text
         if len(text)>2000000:raise ValueError('模型返回内容过大')
-        try:value=json.loads(text)
-        except ValueError:emit('invalid_json');raise ValueError('模型返回内容不是合法JSON') from None
-        if not isinstance(value,dict):raise ValueError('模型必须返回JSON对象')
+        try:value=parse_object(text)
+        except ModelOutputError:emit('invalid_json');raise
         emit('completed',output_bytes=len(text.encode()));return value

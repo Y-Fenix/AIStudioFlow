@@ -5,6 +5,49 @@ from server.store import Store
 
 
 class JobTests(unittest.TestCase):
+    def test_worker_survives_transient_claim_lock(self):
+        import sqlite3
+        import threading
+        from unittest.mock import Mock
+        from server.jobs import GenerationWorker
+        worker=GenerationWorker.__new__(GenerationWorker)
+        worker.stop=threading.Event()
+        worker.store=Mock()
+        busy=sqlite3.OperationalError('database is locked')
+        busy.sqlite_errorcode=sqlite3.SQLITE_BUSY
+        def claim():
+            if worker.store.claim_generation.call_count==1:raise busy
+            worker.stop.set()
+            return None
+        worker.store.claim_generation.side_effect=claim
+        worker.run()
+        self.assertEqual(worker.store.claim_generation.call_count,2)
+
+    def test_cancel_running_operation_preserves_task_and_discards_result(self):
+        self.store.enqueue_generation(self.p, self.t)
+        job = self.store.claim_generation()
+        task = self.store.task(self.p, self.t)
+        self.store.cancel_operation(self.p, self.t, job['id'], task['revision'])
+        with self.assertRaisesRegex(ValueError, '停止'):
+            self.store.enqueue_generation(self.p, self.t)
+        self.store.finish_generation(job, {'cases': ['must not save']})
+        task = self.store.task(self.p, self.t)
+        self.assertEqual(task['status'], 'waiting_user')
+        self.assertEqual(task['artifacts'], {})
+        self.assertEqual(task['jobs'][0]['status'], 'cancelled')
+        self.assertNotEqual(self.store.enqueue_generation(self.p, self.t)['id'], job['id'])
+
+    def test_cancel_queued_and_restore_legacy_task(self):
+        job = self.store.enqueue_generation(self.p, self.t)
+        task = self.store.task(self.p, self.t)
+        self.store.cancel_operation(self.p, self.t, job['id'], task['revision'])
+        self.assertIsNone(self.store.claim_generation())
+        task = self.store.decide(self.p, self.t, 'cancel', task['revision'])
+        restored = self.store.restore_cancelled_task(self.p, self.t, task['revision'])
+        self.assertEqual(restored['status'], 'waiting_user')
+        self.assertEqual(len(restored['requirements']), 1)
+        self.assertEqual(restored['revision'], task['revision'] + 1)
+
     def test_execute_and_attribution_persist_at_correct_destinations(self):
         task = self.store.task(self.p, self.t)
         task = self.store.record_artifact(self.p, self.t, 0, {'cases':[]})
@@ -91,12 +134,42 @@ class JobTests(unittest.TestCase):
                 self.store.decide(self.p, self.t, 'cancel', task['revision'])
                 self.assertTrue(ended.wait(3), '取消后子进程仍在运行')
             finally:
-                worker.stop.set()
-                worker.thread.join(5)
+                worker.close()
             self.assertFalse(worker.thread.is_alive())
             task = self.store.task(self.p, self.t)
             self.assertEqual(task['artifacts'], {})
             self.assertEqual(task['jobs'][0]['status'], 'superseded')
+
+    def test_cancel_operation_stops_child_and_allows_retry(self):
+        import sys
+        import threading
+        import time
+        from unittest.mock import patch
+        from server.jobs import GenerationWorker
+        from server.processes import run
+        ready = Path(self.temp.name) / 'cancel-ready'
+        def generate(_client, requirements):
+            run([sys.executable, '-c', 'from pathlib import Path; import time; Path('+repr(str(ready))+').touch(); time.sleep(30)'], timeout=40)
+        with patch('server.jobs.CodexModel.generate', generate):
+            worker = GenerationWorker(self.store)
+            try:
+                job = self.store.enqueue_generation(self.p, self.t)
+                deadline = time.monotonic() + 5
+                while not ready.exists() and time.monotonic() < deadline:
+                    threading.Event().wait(.02)
+                self.assertTrue(ready.exists())
+                task = self.store.task(self.p, self.t)
+                self.store.cancel_operation(self.p, self.t, job['id'], task['revision'])
+                deadline = time.monotonic() + 5
+                while time.monotonic() < deadline:
+                    task = self.store.task(self.p, self.t)
+                    if task['jobs'][0]['status'] == 'cancelled': break
+                    threading.Event().wait(.02)
+                self.assertEqual(task['jobs'][0]['status'], 'cancelled')
+                self.assertEqual(task['status'], 'waiting_user')
+                self.assertNotEqual(self.store.enqueue_generation(self.p, self.t)['id'], job['id'])
+            finally:
+                worker.close()
 
     def test_pending_refresh_queues_only_pending_roots_and_is_atomic(self):
         import json
@@ -147,6 +220,6 @@ class JobTests(unittest.TestCase):
                 settings.save({'model':'relay-model'})
                 release.set();self.assertTrue(finished.wait(3))
             finally:
-                release.set();worker.stop.set();worker.thread.join(5)
+                release.set();worker.close()
         self.assertEqual([s['source'] for s in seen],['custom','custom'])
         self.assertEqual(settings.runtime_selection()['source'],'relay')

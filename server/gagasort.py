@@ -58,10 +58,10 @@ def inspect_project(path, branch):
             'executed': False}
 
 
-def execute_logic(binding, evidence_root, cases=None, requirements=None, progress=None):
+def execute_logic(binding, evidence_root, cases=None, requirements=None, progress=None, *, points=None):
     if binding and binding.get('execution_suite') == 'static':
         from server.static_review import execute_static
-        return execute_static(binding, cases, requirements or [], evidence_root, progress=progress)
+        return execute_static(binding, cases, requirements or [], evidence_root, progress=progress, points=points)
     if binding and binding.get('execution_suite') == 'streakgroup':
         from server.streakgroup_execution import execute_streakgroup
         return execute_streakgroup(binding, evidence_root)

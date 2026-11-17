@@ -31,11 +31,17 @@ class Workspaces:
             WHERE project_id=? AND node=? ORDER BY id''', (project_id, node))]
         return value
 
-    def get(self, studio_id, project_id, node):
+    def get(self, studio_id, project_id, node, *, flow=""):
+        if flow:
+            from server.core.department_flows import FlowWorkspaces
+            return FlowWorkspaces(self.store).get(studio_id,project_id,node,flow)
         with self.store.connection() as db:
             return self._read(db, studio_id, project_id, node)
 
-    def save(self, studio_id, project_id, node, value):
+    def save(self, studio_id, project_id, node, value, *, origin='manual', flow=''):
+        if flow:
+            from server.core.department_flows import FlowWorkspaces
+            return FlowWorkspaces(self.store).save(studio_id,project_id,node,value,flow,origin)
         from server.core.project_nodes import project_records
         if any(n['id']==node and n['archived'] for n in project_records(self.store,project_id)):
             raise ValueError('节点已归档，历史记录仅供查看')
@@ -75,9 +81,15 @@ class Workspaces:
             db.execute('INSERT INTO studio_events(project_id,node,action,detail) VALUES(?,?,?,?)',
                        (project_id, node, 'workspace_saved', '保存节点' + ('输入、' if 'inputs' in value else '') +
                         ('交付物、' if 'deliverable' in value else '') + ('Skill' if 'skill' in value else '资料')))
+            if origin=='manual' and 'deliverable' in value and deliverable.strip() and deliverable!=current['deliverable']:
+                from server.core.notifications import enqueue
+                enqueue(self.store,db,project_id,node,'manual:'+project_id+':'+node+':'+str(current['revision']+1),'manual',{'deliverable':deliverable},origin='manual')
         return self.get(studio_id, project_id, node)
 
-    def decide(self, studio_id, project_id, node, value):
+    def decide(self, studio_id, project_id, node, value, *, flow=''):
+        if flow:
+            from server.core.department_flows import FlowWorkspaces
+            return FlowWorkspaces(self.store).decide(studio_id,project_id,node,value,flow)
         from server.core.project_nodes import project_records
         if any(n['id']==node and n['archived'] for n in project_records(self.store,project_id)):
             raise ValueError('节点已归档，历史记录仅供查看')
@@ -103,6 +115,8 @@ class Workspaces:
             if value['action'] == 'approve':
                 from server.core.node_continuation import record_completion
                 record_completion(self.store,db,studio_id,project_id,node,current['revision']+1)
+                from server.core.notifications import enqueue
+                enqueue(self.store,db,project_id,node,'approval:'+project_id+':'+node+':'+str(current['revision']+1),'approved')
         return self.get(studio_id, project_id, node)
 
     def summary(self, studio_id, project_id):
@@ -111,5 +125,5 @@ class Workspaces:
             nodes = [dict(r) for r in db.execute('''SELECT node,status,revision,updated_at,
                 length(trim(deliverable))>0 AS has_deliverable FROM studio_workspaces WHERE project_id=?''', (project_id,))]
             tasks = [dict(r) for r in db.execute('''SELECT id,title,stage,status,revision FROM tasks
-                WHERE project_id=? ORDER BY rowid DESC''', (project_id,))]
+                WHERE project_id=? AND NOT EXISTS(SELECT 1 FROM testing_library_deleted d WHERE d.kind='batch' AND d.resource_id=tasks.id) ORDER BY rowid DESC''', (project_id,))]
         return {'nodes': nodes, 'tasks': tasks}
